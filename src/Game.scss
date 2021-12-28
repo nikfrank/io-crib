@@ -7,5 +7,25 @@
   
   .hand {
     width: 100%;
+
+    & svg > g > * { transition: 200ms transform }
+    
+    @for $i from 0 through 5 {
+      &.selected-#{$i} {
+        
+        svg > g:nth-child(#{$i+1}) {
+          
+          & > rect {
+            transform: translateY(-10px);
+          }
+          & > text {
+            transform: translate(7px, 30px);
+          }
+          & > g {
+            transform: translate(21px, 50px) rotate(180deg);
+          }
+        }
+      }
+    }
   }
 }
