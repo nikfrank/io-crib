@@ -1,0 +1,11 @@
+.Game {
+  display: flex;
+  flex-direction: column-reverse; /* column for p2-mode */
+
+  height: 100%;
+  width: 100%;
+  
+  .hand {
+    width: 100%;
+  }
+}
