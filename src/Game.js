@@ -18,6 +18,18 @@ const pegHandStyle = {
   padding: 0,  
 };
 
+// possible phases:
+//
+// dealt, 2 in crib, 4 in crib, cutting, pegging, counting
+// 
+// the last three can cause scoring events
+//
+// network actions (even for local 2p)
+// dealing
+// putting cards in the crib
+// cutting
+// playing cards on the peg
+
 export function Game({ game: { p1: { hand: p1hand }, p2: { hand: p2hand } } }) {
 
   const [selectedCards, setSelectedCards] = useState([]);

@@ -33,7 +33,11 @@ const Menu = ()=> (<div />);
 
 function App() {
 
+  // this should be a useReducer, which the Game & network can call
   const [game, setGame] = useState({ p1: { score: 0, hand: mockHands[0] }, p2: { score: 0, hand: mockHands[1] }});
+
+  // App needs to manage connecting to a table, binding network actions to the Game
+  // when the game is over, display a winner message and a button to start the next game
   
   return (
     <div className="App">
