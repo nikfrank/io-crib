@@ -1,9 +1,18 @@
+.game-container {
+  flex-grow: 1;
+}
+
 .Game {
   display: flex;
   flex-direction: column-reverse; /* column for p2-mode */
 
   height: 100%;
   width: 100%;
+
+  .peg {
+    width: 100%;
+    height: 29vh;
+  }
   
   .hand {
     width: 100%;
