@@ -23,7 +23,7 @@ export const db = firebase.firestore();
 export const loginWithGithub = ()=>
   auth().signInWithPopup( new auth.GithubAuthProvider() );
 
-export const loadGames = (userId)=>
+export const loadBoards = (userId)=>
   Promise.all([
     db.collection('boards')
       .where('p1', '==', userId).get()

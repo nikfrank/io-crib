@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import './App.scss';
 
 import { Game } from './Game';
-import { loginWithGithub, auth } from './network';
+import { loginWithGithub, auth, loadBoards } from './network';
 import { ReactComponent as GithubLogo } from './github.svg'
 
 const mockHands = [
@@ -33,11 +33,15 @@ const Score = ({ game={ p1: { score: 0 }, p2: { score: 0 }} }={})=> (<div>
 </div>);
 
 
-const Menu = ()=> (<div>
-  <button className='login' onClick={loginWithGithub}>
-    Login with <GithubLogo />
-  </button>
-</div>);
+const Menu = ({ user })=> user ? (
+  <img className='user' alt='' src={user.photoURL} />
+) : (
+  <div>
+    <button className='login' onClick={loginWithGithub}>
+      Login with <GithubLogo />
+    </button>
+  </div>
+);
 
 function App() {
 
@@ -56,16 +60,20 @@ function App() {
     auth().onAuthStateChanged((newUser) => {
       console.log(newUser?.providerData[0]);
       if (!newUser) return;
-      setUser(newUser);
+      setUser(newUser.providerData[0]);
     })
   }, []);
+
+  useEffect(()=>{
+    if(user) loadBoards(user.uid).then(boards=> console.log(boards));
+  }, [user]);
   
   return (
     <div className="App">
       <header className="App-header">
         <Logo />
         <Score game={game} />
-        <Menu />
+        <Menu user={user}/>
       </header>
       <div className='game-container'><Game game={game} /></div>
     </div>
