@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import './App.scss';
 
 import { Game } from './Game';
+import { loginWithGithub, auth } from './network';
+import { ReactComponent as GithubLogo } from './github.svg'
 
 const mockHands = [
   [
@@ -29,15 +31,34 @@ const Score = ({ game={ p1: { score: 0 }, p2: { score: 0 }} }={})=> (<div>
   <div>p1 = {game.p1.score}</div>
   <div>p2 = {game.p2.score}</div>
 </div>);
-const Menu = ()=> (<div />);
+
+
+const Menu = ()=> (<div>
+  <button className='login' onClick={loginWithGithub}>
+    Login with <GithubLogo />
+  </button>
+</div>);
 
 function App() {
 
-  // this should be a useReducer, which the Game & network can call
+  // this should be a useReducer, which the network can update
+  // aka just a downstream copy of the firebase state
+  // all updates run through the network
   const [game, setGame] = useState({ p1: { score: 0, hand: mockHands[0] }, p2: { score: 0, hand: mockHands[1] }});
 
   // App needs to manage connecting to a table, binding network actions to the Game
   // when the game is over, display a winner message and a button to start the next game
+
+
+  const [user, setUser] = useState(null);
+
+  useEffect(()=>{
+    auth().onAuthStateChanged((newUser) => {
+      console.log(newUser?.providerData[0]);
+      if (!newUser) return;
+      setUser(newUser);
+    })
+  }, []);
   
   return (
     <div className="App">
