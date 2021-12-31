@@ -3,6 +3,7 @@ import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
 
+import { doc, onSnapshot } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCtXUVbb9sG1DxxcsNPQG0QPKhy45k18CM",
@@ -49,4 +50,20 @@ export const joinGame = ({ boardId, userId, asPlayer })=>
     .doc(boardId)
     .update({ [asPlayer]: userId });
 
-export const createGame = (board)=> db.collection('boards').add(board);
+export const createGame = board=> db.collection('boards').add(board);
+
+export const updateGame = (boardId, board) => db.collection('boards').doc(boardId).update(board);
+
+let cbs = [];
+export const subGame = (boardId, cb)=> {
+  cbs.push(cb);
+  
+  const unsub = onSnapshot(doc(db, 'boards', boardId), (doc) => {
+    cbs.forEach(c=> c(doc.data()));
+  });
+
+  return ()=> {
+    cbs = cbs.filter(c => c !== cb);
+    unsub();
+  };
+};

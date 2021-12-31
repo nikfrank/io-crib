@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import './App.scss';
 
 import { Game } from './Game';
-import { loginWithGithub, auth, loadBoards, createGame } from './network';
+import { loginWithGithub, auth, loadBoards, createGame, updateGame, subGame } from './network';
 import { ReactComponent as GithubLogo } from './github.svg'
 
 const mockHands = [
@@ -114,6 +114,8 @@ function App() {
 
   const newGame = useMemo(()=> ()=> createGame({ ...defGame, p1: user.uid }).then(()=> setCreated(i => i++)), [user]);
 
+  const gameId = useMemo(()=> game ? game.id : null, [game]);
+  useEffect(()=> gameId ? subGame(gameId, setGame) : undefined, [gameId]);
 
   // calculate memos for bound network functions to:
 
@@ -124,6 +126,19 @@ function App() {
   // trigger scoring
 
   // pass them to Game
+
+  // join game, create game (done)
+  // pass to Menu
+
+  const putInCrib = useMemo(()=> cards=> {
+    const p = p2mode ? 'p2' : 'p1';
+    
+    return updateGame(game.id, {
+      [p]: game[p],
+      [p + 'crib']: cards.map(i=> game[p + 'hand'][i]),
+      [p + 'hand']: game[p + 'hand'].filter((_, i) => !cards.includes(i)),
+    });
+  }, [game, p2mode]);
   
   return (
     <div className="App">
@@ -132,7 +147,9 @@ function App() {
         <Score game={game} />
         <Menu user={user} newGame={newGame} selectGame={setGame} boards={boards} />
       </header>
-      <div className='game-container'><Game game={game} p2mode={p2mode} /></div>
+      <div className='game-container'>
+        <Game game={game} p2mode={p2mode} network={{ putInCrib }} />
+      </div>
     </div>
   );
 }

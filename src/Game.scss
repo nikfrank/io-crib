@@ -17,6 +17,10 @@
   .hand {
     width: 100%;
 
+    text {
+      user-select: none;
+    }
+
     & svg > g > * { transition: 200ms transform }
     
     @for $i from 0 through 5 {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 import './Game.scss';
 
@@ -95,8 +95,19 @@ const PhaseButton = ({ phase, onClick, p2mode, handscores={ p1: 12, p2: 12, p2cr
 );
 
 
-export function Game({ game: { p1, p1hand, p2, p2hand, phase, pegs } = emptyGame, p2mode = false }) {
+export function Game({ game = emptyGame, p2mode = false, network={} }) {
 
+  const { p1, p1hand, p1crib, p2, p2hand, p2crib, phase, pegs } = game;
+
+  const finePhase = useMemo(()=>
+    phase.includes('peg') ? 'playerToPlay()' + phase :
+    phase.includes('cribs') ? (
+      !(p1crib + p2crib) ? 'both' :
+      !p1crib.length ? 'p1' :
+      !p2crib.length ? 'p2' : 'cut'
+    ) + '-' + phase :
+    phase, [phase, p2crib, p1crib]);
+  
   const [selectedCards, setSelectedCards] = useState([]);
 
   useEffect(()=> console.log(phase), [phase]);
@@ -104,6 +115,15 @@ export function Game({ game: { p1, p1hand, p2, p2hand, phase, pegs } = emptyGame
   // here, useCallback -> for the phase button on click
   //   import bound network calls from App
   //   state will propagate back down through props.game
+
+  const { putInCrib } = network;
+
+  const phaseClick = useCallback(()=> {
+    console.log(phase, p2mode, selectedCards);
+    
+    if( phase.includes('crib') ) putInCrib(selectedCards);
+    
+  }, [phase, game, p2mode, selectedCards, network]);
   
   return (
     <div className="Game">
@@ -113,11 +133,11 @@ export function Game({ game: { p1, p1hand, p2, p2hand, phase, pegs } = emptyGame
       </div>
 
       <div className='peg'>
-        {phase === 'peg' ? (
+        {phase.includes('peg') ? (
            <Hand cards={pegs} hidden={false} style={pegHandStyle} onClick={()=>0} />
         ) : <PhaseButton
-              phase={phase}
-              onClick={()=> console.log('phase', phase)}
+              phase={finePhase}
+              onClick={phaseClick}
               p2mode={p2mode}
               selectedCount={selectedCards.length}
         />}
