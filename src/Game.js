@@ -35,22 +35,22 @@ const emptyGame = { p1: '', p2: '', p1hand: [], p2hand: [], pegs: [], phase: 'p1
 
 const PhaseButton = ({ phase, onClick, p2mode, handscores={ p1: 12, p2: 12, p2crib: 8 }, selectedCount=0 })=> (
   <div className='PhaseButton'>
-    {phase === 'p1-deals' ? (
+    {phase === 'deals-p1' ? (
        <button disabled={p2mode} onClick={onClick}>
          {p2mode ? 'waiting for p1 to deal' :'Deal!'}
        </button>
-    ) : phase === 'p2-deals' ? (
+    ) : phase === 'deals-p2' ? (
        <button disabled={!p2mode} onClick={onClick}>
          {!p2mode ? 'waiting for p2 to deal' :'Deal!'}
        </button>
        
-    ) : phase === 'p1-cuts' ? (
+    ) : phase === 'cut-cribs-p1' ? (
        <button disabled={p2mode} onClick={onClick}>
-         {p2mode ? 'waiting for p1 to cut' :'Deal!'}
+         {p2mode ? 'waiting for p1 to cut' :'Cut!'}
        </button>
-    ) : phase === 'p2-cuts' ? (
+    ) : phase === 'cut-cribs-p2' ? (
        <button disabled={!p2mode} onClick={onClick}>
-         {!p2mode ? 'waiting for p1 to cut' :'Deal!'}
+         {!p2mode ? 'waiting for p1 to cut' :'Cut!'}
        </button>
        
     ) : phase === 'both-cribs-p1' ? (
@@ -80,11 +80,19 @@ const PhaseButton = ({ phase, onClick, p2mode, handscores={ p1: 12, p2: 12, p2cr
       </button>
       
       
-    ) : phase === 'p1-scores' ? (
+    ) : phase === 'p1-scores-p1' ? (
       <button disabled={p2mode} onClick={onClick}>
         {p2mode ? 'waiting for p1 to take ${} points' : 'Take ${} points'}
       </button>
-    ) : phase === 'p2-scores' ? (
+    ) : phase === 'p2-scores-p1' ? (
+      <button disabled={!p2mode} onClick={onClick}>
+        {!p2mode ? 'waiting for p1 to take ${} points' : 'Take ${} points'}
+      </button>
+    ) : phase === 'p1-scores-p2' ? (
+      <button disabled={p2mode} onClick={onClick}>
+        {p2mode ? 'waiting for p1 to take ${} points' : 'Take ${} points'}
+      </button>
+    ) : phase === 'p2-scores-p2' ? (
       <button disabled={!p2mode} onClick={onClick}>
         {!p2mode ? 'waiting for p1 to take ${} points' : 'Take ${} points'}
       </button>
