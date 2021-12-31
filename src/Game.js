@@ -4,6 +4,8 @@ import './Game.scss';
 
 import { Hand } from 'react-deck-o-cards';
 
+import { sameCard, whoPegs } from './crib-util';
+
 const defHandStyle = {
   maxHeight:'32vh',
   minHeight:'32vh',
@@ -128,7 +130,7 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
   useEffect(()=> console.log(phase), [phase]);
 
   const myPegHand = useMemo(()=> (
-    (p2mode ? p2hand : p1hand).filter(hc => !pegs.find(pc => ((pc.rank === hc.rank) && (pc.suit === hc.suit))))
+    (p2mode ? p2hand : p1hand).filter(hc => !pegs.find(sameCard(hc)))
   ), [p2mode, p2hand, p1hand, pegs]);
 
   const pegTotal = useMemo(()=> pegs.reduce((p, c)=> (
@@ -146,7 +148,7 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
     else if( phase.includes('crib') ) putInCrib(selectedCards);
     else if( phase.includes('peg') ){
       // is it my turn to play a peg card?
-      console.log('peg', card, game);
+      console.log('peg', card, game, whoPegs(game), p2mode, p2mode === (whoPegs(game) === 'p2'));
     }
     
   }, [phase, game, p2mode, selectedCards, network]);

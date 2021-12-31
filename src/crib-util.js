@@ -1,7 +1,33 @@
+export const sameCard = pc=> hc => ((hc.rank === pc.rank) && (hc.suit === pc.suit));
+
 export const whoPegs = game=>{
   // phase says whose crib
   // other player played first
   // back and forth, unless turn can't pay but other can
+
+  let turn = game.phase.substr(-2) === 'p2' ? 'p1' : 'p2';
+  let count = 0;
+  
+  game.pegs.forEach(pc => {
+    const nextCount = count + Math.min(10, pc.rank);
+    if( nextCount > 31 ) count = Math.min(10, pc.rank);
+    else count = nextCount;
+
+    if( game.p1hand.find(sameCard(pc)) ) turn = 'p2';
+    if( game.p2hand.find(sameCard(pc)) ) turn = 'p1';
+
+    const turnHand = turn === 'p2' ? game.p2hand : game.p1hand;
+    const otherHand = turn === 'p1' ? game.p2hand : game.p1hand;
+    
+    if( ( count < 31 ) &&
+        !turnHand.find(tc=> (Math.max(10, tc.rank) + count <= 31)) &&
+        otherHand.find(tc=> (Math.max(10, tc.rank) + count <= 31))
+    ) turn = turn === 'p1' ? 'p2' : 'p1';
+
+    // if neither, it's a go!
+  });
+
+  return turn;
 }
 
 
