@@ -19,7 +19,7 @@
 }
 
 .App-header {
-  min-height: 4vh;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -27,21 +27,56 @@
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
 
 img.github, img.user {
   margin: 10px 0 0 50px;
-  height: 50px;
+  height: calc(100% - 10px);
   width: auto;
+}
+
+
+
+.Menu {
+  height: 30px;
+  flex-grow: 1;
+
+  display: flex;
+  justify-contents: space-around;
+  
+  button.new-game {
+    height: 100%;
+  }
+
+  .game-select {
+    list-style: none;
+    padding: 0;
+
+    position: absolute;
+    right: 10px;
+    top: 20px;
+
+    height: 30px;
+    overflow: hidden;
+
+    &:hover {
+      height: initial;
+      z-index: 50;
+    }
+
+    li {
+      height: 30px;      
+      background-color: #000c;
+
+      display: flex;
+      
+      img {
+        height: 20px;
+      }
+    }
+
+
+    &:hover {
+      height: initial;
+    }
+  }
 }

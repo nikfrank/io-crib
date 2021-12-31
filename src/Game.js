@@ -30,7 +30,7 @@ const pegHandStyle = {
 // cutting
 // playing cards on the peg
 
-export function Game({ game: { p1: { hand: p1hand }, p2: { hand: p2hand } } }) {
+export function Game({ game: { p1, p1hand, p2, p2hand } = { p1: '', p2: '' } }) {
 
   const [selectedCards, setSelectedCards] = useState([]);
 
