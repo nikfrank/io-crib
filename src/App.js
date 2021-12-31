@@ -166,7 +166,7 @@ function App() {
     });
   }, [game, p2mode]);
 
-  const boundNetwork = useMemo(()=> ({ putInCrib, cutTheDeck }), [ putInCrib, cutTheDeck ]);
+  const boundNetwork = useMemo(()=> ({ putInCrib, cutTheDeck, playPegCard }), [ putInCrib, cutTheDeck, playPegCard ]);
   
   return (
     <div className="App">

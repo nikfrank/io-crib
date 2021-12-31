@@ -133,6 +133,12 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
     (p2mode ? p2hand : p1hand).filter(hc => !pegs.find(sameCard(hc)))
   ), [p2mode, p2hand, p1hand, pegs]);
 
+  const otherPegHand = useMemo(()=> (
+    (p2mode ? p1hand : p2hand).filter(hc => !pegs.find(sameCard(hc)))
+  ), [p2mode, p2hand, p1hand, pegs]);
+
+  
+
   const pegTotal = useMemo(()=> pegs.reduce((p, c)=> (
     p + Math.min(10, c.rank) > 31 ? Math.min(10, c.rank) : p + Math.min(10, c.rank)
   ), 0), [pegs]);
@@ -143,12 +149,13 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
 
   const { putInCrib, cutTheDeck, playPegCard } = network;
 
-  const phaseClick = useCallback(card=> {
+  const phaseClick = useCallback(cardId=> {
     if( finePhase.includes('cut') ) cutTheDeck();
     else if( phase.includes('crib') ) putInCrib(selectedCards);
     else if( phase.includes('peg') ){
       // is it my turn to play a peg card?
-      console.log('peg', card, game, whoPegs(game), p2mode, p2mode === (whoPegs(game) === 'p2'));
+      if(p2mode === (whoPegs(game) === 'p2')) playPegCard(cardId);
+      else console.log('not my turn');
     }
     
   }, [phase, game, p2mode, selectedCards, network]);
@@ -182,7 +189,7 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
       </div>
 
       <div className='hand p2-hand'>
-        <Hand cards={p2mode ? p1hand : p2hand} hidden={true} style={defHandStyle} />
+        <Hand cards={phase.includes('peg') ? otherPegHand : p2mode ? p1hand : p2hand} hidden={true} style={defHandStyle} />
       </div>
 
       {cut ? (
