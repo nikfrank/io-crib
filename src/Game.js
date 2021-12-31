@@ -18,6 +18,13 @@ const pegHandStyle = {
   padding: 0,  
 };
 
+
+const cutHandStyle = {
+  maxHeight: '100%',
+  maxWidth:'12vh',
+  padding: 0,  
+};
+
 // possible phases:
 //
 // dealt, 2 in crib, 4 in crib, cutting, pegging, counting
@@ -105,7 +112,7 @@ const PhaseButton = ({ phase, onClick, p2mode, handscores={ p1: 12, p2: 12, p2cr
 
 export function Game({ game = emptyGame, p2mode = false, network={} }) {
 
-  const { p1, p1hand, p1crib, p2, p2hand, p2crib, phase, pegs } = game;
+  const { p1, p1hand, p1crib, p2, p2hand, p2crib, phase, pegs, cut } = game;
 
   const finePhase = useMemo(()=>
     phase.includes('peg') ? 'playerToPlay()' + phase :
@@ -124,12 +131,11 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
   //   import bound network calls from App
   //   state will propagate back down through props.game
 
-  const { putInCrib } = network;
+  const { putInCrib, cutTheDeck } = network;
 
   const phaseClick = useCallback(()=> {
-    console.log(phase, p2mode, selectedCards);
-    
-    if( phase.includes('crib') ) putInCrib(selectedCards);
+    if( finePhase.includes('cut') ) cutTheDeck();
+    else if( phase.includes('crib') ) putInCrib(selectedCards);
     
   }, [phase, game, p2mode, selectedCards, network]);
   
@@ -154,6 +160,12 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
       <div className='hand p2-hand'>
         <Hand cards={p2mode ? p1hand : p2hand} hidden={true} style={defHandStyle} />
       </div>
+
+      {cut ? (
+         <div className='cut-container'>
+           <Hand cards={[cut]} hidden={false} style={cutHandStyle} />
+         </div>
+      ) : null}
       
     </div>
   );

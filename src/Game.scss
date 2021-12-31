@@ -41,4 +41,19 @@
       }
     }
   }
+
+  .cut-container {
+    position: fixed;
+    right: 8px;
+    top: 44vh;
+    height: 12vh;
+    width: 12vh;
+
+    & > svg > g > text {
+      transform: translate(14px, 80px) scale(2);
+    }
+    & > svg > g > g {
+      transform: translate(40px, 116px) rotate(180deg) scale(2);
+    }
+  }
 }

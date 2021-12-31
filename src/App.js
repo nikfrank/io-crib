@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import './App.scss';
 
 import { Game } from './Game';
-import { loginWithGithub, auth, loadBoards, createGame, updateGame, subGame } from './network';
+import { loginWithGithub, auth, loadBoards, createGame, updateGame, subGame, randomCard } from './network';
 import { ReactComponent as GithubLogo } from './github.svg'
 
 const mockHands = [
@@ -139,6 +139,18 @@ function App() {
       [p + 'hand']: game[p + 'hand'].filter((_, i) => !cards.includes(i)),
     });
   }, [game, p2mode]);
+
+  const cutTheDeck = useMemo(()=> ()=> {
+    const p = p2mode ? 'p2' : 'p1';
+    
+    return updateGame(game.id, {
+      [p]: game[p],
+      cut: randomCard(game),
+      phase: 'peg-' + game.phase.substr(-2),
+    });
+  }, [game, p2mode]);
+
+  const boundNetwork = useMemo(()=> ({ putInCrib, cutTheDeck }), [ putInCrib, cutTheDeck ]);
   
   return (
     <div className="App">
@@ -148,7 +160,7 @@ function App() {
         <Menu user={user} newGame={newGame} selectGame={setGame} boards={boards} />
       </header>
       <div className='game-container'>
-        <Game game={game} p2mode={p2mode} network={{ putInCrib }} />
+        <Game game={game} p2mode={p2mode} network={boundNetwork} />
       </div>
     </div>
   );
