@@ -156,10 +156,13 @@ function App() {
 
   const playPegCard = useMemo(()=> cardId=> {
     const p = p2mode ? 'p2' : 'p1';
-
+    const cribP = game.phase.substr(-2);
+    const otherP = cribP === 'p1' ? 'p2' : 'p1';
+    
     return updateGame(game.id, {
       [p]: game[p],
       pegs: [...game.pegs, game[p + 'hand'][cardId]],
+      phase: game.pegs.length === 7 ? otherP + '-scores-' + cribP : game.phase,
 
       // if this play scores, eiter by pair/6/12, run, 15, 31, go
       // add the score on now

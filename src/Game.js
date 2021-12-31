@@ -88,7 +88,6 @@ const PhaseButton = ({ phase, onClick, p2mode, handscores={ p1: 12, p2: 12, p2cr
         {!p2mode ? 'waiting for p2 to put cards into crib' :'Put selected cards into my crib'}
       </button>
       
-      
     ) : phase === 'p1-scores-p1' ? (
       <button disabled={p2mode} onClick={onClick}>
         {p2mode ? 'waiting for p1 to take ${} points' : 'Take ${} points'}
@@ -103,7 +102,7 @@ const PhaseButton = ({ phase, onClick, p2mode, handscores={ p1: 12, p2: 12, p2cr
       </button>
     ) : phase === 'p2-scores-p2' ? (
       <button disabled={!p2mode} onClick={onClick}>
-        {!p2mode ? 'waiting for p1 to take ${} points' : 'Take ${} points'}
+      {!p2mode ? 'waiting for p1 to take ${} points' : 'Take ${} points'}
       </button>
     ) : null
       
@@ -117,7 +116,7 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
   const { p1, p1hand, p1crib, p2, p2hand, p2crib, phase, pegs, cut } = game;
 
   const finePhase = useMemo(()=>
-    phase.includes('peg') ? 'playerToPlay()' + phase :
+    phase.includes('peg') ? pegs.length === 8 ? 'peg-over' : phase :
     phase.includes('cribs') ? (
       !(p1crib + p2crib) ? 'both' :
       !p1crib.length ? 'p1' :
@@ -137,11 +136,13 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
     (p2mode ? p1hand : p2hand).filter(hc => !pegs.find(sameCard(hc)))
   ), [p2mode, p2hand, p1hand, pegs]);
 
+  const currentPeg = useMemo(()=> (
+    pegs.reduce((s, c)=> (s.count + Math.min(10, c.rank) > 31 ? (
+      { ...s, count: Math.min(10, c.rank), stack: [c] }
+    ) : (
+      { ...s, count: s.count + Math.min(10, c.rank), stack: [...s.stack, c] }
+    )), { stack: [], count: 0 })), [pegs]);
   
-
-  const pegTotal = useMemo(()=> pegs.reduce((p, c)=> (
-    p + Math.min(10, c.rank) > 31 ? Math.min(10, c.rank) : p + Math.min(10, c.rank)
-  ), 0), [pegs]);
   
   // here, useCallback -> for the phase button on click
   //   import bound network calls from App
@@ -177,8 +178,8 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
       <div className='peg'>
         {phase.includes('peg') ? (
            <div className='peg-container'>
-             <Hand cards={pegs} hidden={false} style={pegHandStyle} onClick={()=>0} />
-             <div className='peg-total'>{pegTotal}</div>
+             <Hand cards={currentPeg.stack} hidden={false} style={pegHandStyle} onClick={()=>0} />
+             <div className='peg-total'>{currentPeg.count}</div>
            </div>
         ) : <PhaseButton
               phase={finePhase}
