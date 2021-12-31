@@ -127,28 +127,50 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
 
   useEffect(()=> console.log(phase), [phase]);
 
+  const myPegHand = useMemo(()=> (
+    (p2mode ? p2hand : p1hand).filter(hc => !pegs.find(pc => ((pc.rank === hc.rank) && (pc.suit === hc.suit))))
+  ), [p2mode, p2hand, p1hand, pegs]);
+
+  const pegTotal = useMemo(()=> pegs.reduce((p, c)=> (
+    p + Math.min(10, c.rank) > 31 ? Math.min(10, c.rank) : p + Math.min(10, c.rank)
+  ), 0), [pegs]);
+  
   // here, useCallback -> for the phase button on click
   //   import bound network calls from App
   //   state will propagate back down through props.game
 
-  const { putInCrib, cutTheDeck } = network;
+  const { putInCrib, cutTheDeck, playPegCard } = network;
 
-  const phaseClick = useCallback(()=> {
+  const phaseClick = useCallback(card=> {
     if( finePhase.includes('cut') ) cutTheDeck();
     else if( phase.includes('crib') ) putInCrib(selectedCards);
+    else if( phase.includes('peg') ){
+      // is it my turn to play a peg card?
+      console.log('peg', card, game);
+    }
     
   }, [phase, game, p2mode, selectedCards, network]);
-  
+
+
   return (
     <div className="Game">
       <div className={'hand p1-hand '+(selectedCards.reduce((cl, sc)=> cl+'selected-'+sc+' ', ''))}>
-        <Hand cards={p2mode ? p2hand : p1hand} hidden={false} style={defHandStyle}
-              onClick={card=> setSelectedCards(prev=> prev.includes(card) ? prev.filter(c=> c !== card) : [...prev, card])} />
+        {!phase.includes('peg') ? (
+           <Hand cards={p2mode ? p2hand : p1hand} hidden={false} style={defHandStyle}
+                 onClick={card=> setSelectedCards(prv=> prv.includes(card) ? prv.filter(c=> c !== card) : [...prv, card])} />
+        ) : (
+           <Hand cards={myPegHand}
+                 hidden={false} style={defHandStyle}
+                 onClick={phaseClick} />
+        )}
       </div>
 
       <div className='peg'>
         {phase.includes('peg') ? (
-           <Hand cards={pegs} hidden={false} style={pegHandStyle} onClick={()=>0} />
+           <div className='peg-container'>
+             <Hand cards={pegs} hidden={false} style={pegHandStyle} onClick={()=>0} />
+             <div className='peg-total'>{pegTotal}</div>
+           </div>
         ) : <PhaseButton
               phase={finePhase}
               onClick={phaseClick}

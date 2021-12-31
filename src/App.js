@@ -130,23 +130,39 @@ function App() {
   // join game, create game (done)
   // pass to Menu
 
-  const putInCrib = useMemo(()=> cards=> {
+  const putInCrib = useMemo(()=> cardIds=> {
     const p = p2mode ? 'p2' : 'p1';
     
     return updateGame(game.id, {
       [p]: game[p],
-      [p + 'crib']: cards.map(i=> game[p + 'hand'][i]),
-      [p + 'hand']: game[p + 'hand'].filter((_, i) => !cards.includes(i)),
+      [p + 'crib']: cardIds.map(i=> game[p + 'hand'][i]),
+      [p + 'hand']: game[p + 'hand'].filter((_, i) => !cardIds.includes(i)),
     });
   }, [game, p2mode]);
 
   const cutTheDeck = useMemo(()=> ()=> {
     const p = p2mode ? 'p2' : 'p1';
+
+    const cutCard = randomCard(game);
     
     return updateGame(game.id, {
       [p]: game[p],
-      cut: randomCard(game),
+      cut: cutCard,
       phase: 'peg-' + game.phase.substr(-2),
+
+      // if it's a jack and p#score < 116, add 2
+    });
+  }, [game, p2mode]);
+
+  const playPegCard = useMemo(()=> cardId=> {
+    const p = p2mode ? 'p2' : 'p1';
+
+    return updateGame(game.id, {
+      [p]: game[p],
+      pegs: [...game.pegs, game[p + 'hand'][cardId]],
+
+      // if this play scores, eiter by pair/6/12, run, 15, 31, go
+      // add the score on now
     });
   }, [game, p2mode]);
 
