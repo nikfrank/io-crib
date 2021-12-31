@@ -114,6 +114,16 @@ function App() {
 
   const newGame = useMemo(()=> ()=> createGame({ ...defGame, p1: user.uid }).then(()=> setCreated(i => i++)), [user]);
 
+
+  // calculate memos for bound network functions to:
+
+  // deal
+  // put cards in crib
+  // cut
+  // play peg
+  // trigger scoring
+
+  // pass them to Game
   
   return (
     <div className="App">

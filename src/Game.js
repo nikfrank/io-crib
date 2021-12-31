@@ -100,6 +100,10 @@ export function Game({ game: { p1, p1hand, p2, p2hand, phase, pegs } = emptyGame
   const [selectedCards, setSelectedCards] = useState([]);
 
   useEffect(()=> console.log(phase), [phase]);
+
+  // here, useCallback -> for the phase button on click
+  //   import bound network calls from App
+  //   state will propagate back down through props.game
   
   return (
     <div className="Game">
