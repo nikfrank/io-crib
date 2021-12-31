@@ -90,6 +90,8 @@ function App() {
   const [user, setUser] = useState(null);
   const [created, setCreated] = useState(0);
 
+  const [p2mode, setP2mode] = useState(false);
+
   useEffect(()=>{
     auth().onAuthStateChanged((newUser) => {
       console.log(newUser?.providerData[0]);
@@ -101,7 +103,13 @@ function App() {
   useEffect(()=>{
     if(user) loadBoards(user.uid)
       .then(boards=> (setBoards(boards), boards))
-      .then(boards=> boards.length === 1 ? setGame(boards[0]) : setGame(boards[boards.length-1]));
+      .then(boards=> boards.length === 1 ? (
+        setGame(boards[0]),
+        setP2mode(user.uid === boards[0].p2)
+      ): (
+        setGame(boards[boards.length-1]),
+        setP2mode(user.uid === boards[boards.length-1].p2)
+      ));
   }, [user, created]);
 
   const newGame = useMemo(()=> ()=> createGame({ ...defGame, p1: user.uid }).then(()=> setCreated(i => i++)), [user]);
@@ -114,7 +122,7 @@ function App() {
         <Score game={game} />
         <Menu user={user} newGame={newGame} selectGame={setGame} boards={boards} />
       </header>
-      <div className='game-container'><Game game={game} /></div>
+      <div className='game-container'><Game game={game} p2mode={p2mode} /></div>
     </div>
   );
 }
