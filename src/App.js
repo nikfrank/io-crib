@@ -4,6 +4,8 @@ import './App.scss';
 
 import { Game } from './Game';
 import { loginWithGithub, auth, loadBoards, createGame, updateGame, subGame, randomCard } from './network';
+import { scorehand } from './crib-util';
+
 import { ReactComponent as GithubLogo } from './github.svg'
 
 const mockHands = [
@@ -142,8 +144,14 @@ function App() {
 
   const cutTheDeck = useMemo(()=> ()=> {
     const p = p2mode ? 'p2' : 'p1';
+    const cribP = game.phase.substr(-2);
 
     const cutCard = randomCard(game);
+
+    const nextScores = (cutCard.rank === 11) && (game[cribP + 'score'] < 116) ? {
+      [cribP + 'prevscore']: game[cribP + 'score'],
+      [cribP + 'score']: game[cribP + 'score'] + 2,
+    } : {};
     
     return updateGame(game.id, {
       [p]: game[p],
@@ -151,6 +159,7 @@ function App() {
       phase: 'peg-' + game.phase.substr(-2),
 
       // if it's a jack and p#score < 116, add 2
+      ...nextScores,
     });
   }, [game, p2mode]);
 
@@ -169,7 +178,45 @@ function App() {
     });
   }, [game, p2mode]);
 
-  const boundNetwork = useMemo(()=> ({ putInCrib, cutTheDeck, playPegCard }), [ putInCrib, cutTheDeck, playPegCard ]);
+  const takePoints = useMemo(()=> ()=> {
+    const p = p2mode ? 'p2' : 'p1';
+    const cribP = game.phase.substr(-2);
+    const otherP = cribP === 'p1' ? 'p2' : 'p1';
+
+    const handscore = scorehand(game[p + 'hand'])
+    const cribscore = scorehand([...game.p1crib, ...game.p2crib])
+
+    const nextscore = game[p + 'score'] + handscore + (p === cribP ? cribscore : 0);
+    const nextPhase = (
+      nextscore >= 121 ? p + '-wins' :
+      p === cribP ? 'deals-'+otherP :
+      cribP + '-scores-' + cribP
+    );
+
+    const nextHands = !nextPhase.includes('deals') ? {} : {
+      cut: {},
+      p1hand: [],
+      p2hand: [],
+      p1crib: [],
+      p2crib: [],
+    };
+    
+    return updateGame(game.id, {
+      [p]: game[p],
+      [p + 'score']: nextscore,
+      [p + 'prevscore']: game[p + 'score'],
+      phase: nextPhase,
+
+      ...nextHands,
+    });
+  }, [game, p2mode]);
+
+  const boundNetwork = useMemo(()=> ({
+    putInCrib,
+    cutTheDeck,
+    playPegCard,
+    takePoints,
+  }), [ putInCrib, cutTheDeck, playPegCard, takePoints ]);
   
   return (
     <div className="App">
