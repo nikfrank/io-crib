@@ -150,38 +150,39 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
   //   import bound network calls from App
   //   state will propagate back down through props.game
 
-  const { putInCrib, cutTheDeck, playPegCard, takePoints } = network;
+  const { putInCrib, cutTheDeck, playPegCard, takePoints, dealHands } = network;
 
   const phaseClick = useCallback(cardId=> {
     if( finePhase.includes('cut') ) cutTheDeck();
-    else if( phase.includes('crib') ) putInCrib(selectedCards);
+    else if( phase.includes('crib') ){
+      putInCrib(selectedCards);
+      setSelectedCards([]);
+    }
     else if( phase.includes('peg') ){
       // is it my turn to play a peg card?
       if(p2mode === (whoPegs(game) === 'p2')) playPegCard(cardId);
       else console.log('not my turn');
       
     } else if( phase.includes('scores') ) takePoints();
+    else if( phase.includes('deal') ) dealHands();
     
   }, [phase, game, p2mode, selectedCards, network]);
 
 
   const handScores = useMemo(()=> !phase.includes('scores') ? {} : {
-    p1: scorehand(game.p1hand),
-    p2: scorehand(game.p2hand),
-    [phase.substr(-2) + 'crib']: scorehand([...game.p1crib, ...game.p2crib]),
+    p1: console.log('p1')||scorehand(game.p1hand, game.cut),
+    p2: console.log('p2')||scorehand(game.p2hand, game.cut),
+    [phase.substr(-2) + 'crib']: scorehand([...game.p1crib, ...game.p2crib], game.cut),
   }, [phase, game]);
-
-  
-  useEffect(()=> console.log(handScores), [handScores]);
 
 
   return (
     <div className="Game">
-      <div className={'hand p1-hand '+(selectedCards.reduce((cl, sc)=> cl+'selected-'+sc+' ', ''))}>
+      <div className={'hand my-hand '+(selectedCards.reduce((cl, sc)=> cl+'selected-'+sc+' ', ''))}>
         {!phase.includes('peg') ? (
            <Hand cards={p2mode ? p2hand : p1hand}
-                 hidden={!(phase.includes('scores') && ((p2mode && (phase.substr(0, 2) === 'p2')) ||
-                                                        (!p2mode && (phase.substr(0, 2) === 'p1'))))}
+                 hidden={phase.includes('scores') && ((p2mode && (phase.substr(0, 2) === 'p1')) ||
+                                                      (!p2mode && (phase.substr(0, 2) === 'p2')))}
                  style={defHandStyle}
                  onClick={card=> setSelectedCards(prv=> prv.includes(card) ? prv.filter(c=> c !== card) : [...prv, card])} />
         ) : (
@@ -213,7 +214,7 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
         }
       </div>
 
-      <div className='hand p2-hand'>
+      <div className='hand other-hand'>
         <Hand cards={phase.includes('peg') ? otherPegHand : p2mode ? p1hand : p2hand}
               hidden={!(phase.includes('scores') && ((p2mode && (phase.substr(0, 2) === 'p1')) ||
                                                      (!p2mode && (phase.substr(0, 2) === 'p2'))))}

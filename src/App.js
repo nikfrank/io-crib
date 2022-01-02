@@ -3,8 +3,8 @@ import { useState, useEffect, useMemo } from 'react';
 import './App.scss';
 
 import { Game } from './Game';
-import { loginWithGithub, auth, loadBoards, createGame, updateGame, subGame, randomCard } from './network';
-import { scorehand } from './crib-util';
+import { loginWithGithub, auth, loadBoards, createGame, updateGame, subGame } from './network';
+import { scorehand, randomCard, dealCards, pegScore } from './crib-util';
 
 import { ReactComponent as GithubLogo } from './github.svg'
 
@@ -45,7 +45,7 @@ const defGame = {
   p2prevScore: 0,
   p2score: 0,
   pegs: [],
-  phase: "p1-deals",
+  phase: "deals-p1",
 };
 
 const Logo = ()=> (<img src='favicon.ico' />);
@@ -167,14 +167,21 @@ function App() {
     const p = p2mode ? 'p2' : 'p1';
     const cribP = game.phase.substr(-2);
     const otherP = cribP === 'p1' ? 'p2' : 'p1';
+
+    const cardsLeft = game[p + 'hand'].filter(lc => !game.pegs.find(pc => ((pc.suit === lc.suit) && (pc.rank === lc.rank))));
     
+    const nextPegs = [...game.pegs, cardsLeft[cardId]];
+
+    const pegPoints = pegScore(nextPegs, game.p1hand, game.p2hand);
+    const nextscore = game[p + 'score'] + pegPoints;
+
     return updateGame(game.id, {
       [p]: game[p],
-      pegs: [...game.pegs, game[p + 'hand'][cardId]],
+      pegs: nextPegs,
       phase: game.pegs.length === 7 ? otherP + '-scores-' + cribP : game.phase,
 
-      // if this play scores, eiter by pair/6/12, run, 15, 31, go
-      // add the score on now
+      [p + 'score']: nextscore,
+      [p + 'prevscore']: nextscore > game[p + 'score'] ? game[p + 'score'] : game[p + 'prevscore'],      
     });
   }, [game, p2mode]);
 
@@ -183,8 +190,8 @@ function App() {
     const cribP = game.phase.substr(-2);
     const otherP = cribP === 'p1' ? 'p2' : 'p1';
 
-    const handscore = scorehand(game[p + 'hand'])
-    const cribscore = scorehand([...game.p1crib, ...game.p2crib])
+    const handscore = scorehand(game[p + 'hand'], game.cut)
+    const cribscore = scorehand([...game.p1crib, ...game.p2crib], game.cut)
 
     const nextscore = game[p + 'score'] + handscore + (p === cribP ? cribscore : 0);
     const nextPhase = (
@@ -204,10 +211,22 @@ function App() {
     return updateGame(game.id, {
       [p]: game[p],
       [p + 'score']: nextscore,
-      [p + 'prevscore']: game[p + 'score'],
+      [p + 'prevscore']: nextscore > game[p + 'score'] ? game[p + 'score'] : game[p + 'prevscore'],
       phase: nextPhase,
 
       ...nextHands,
+    });
+  }, [game, p2mode]);
+
+  const dealHands = useMemo(()=> ()=> {
+    const p = p2mode ? 'p2' : 'p1';
+    const cribP = game.phase.substr(-2);
+    
+    return updateGame(game.id, {
+      [p]: game[p],
+      phase: 'cribs-'+cribP,
+      ...dealCards(),
+      pegs: [],
     });
   }, [game, p2mode]);
 
@@ -216,7 +235,8 @@ function App() {
     cutTheDeck,
     playPegCard,
     takePoints,
-  }), [ putInCrib, cutTheDeck, playPegCard, takePoints ]);
+    dealHands,
+  }), [ putInCrib, cutTheDeck, playPegCard, takePoints, dealHands ]);
   
   return (
     <div className="App">

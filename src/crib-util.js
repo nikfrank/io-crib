@@ -16,12 +16,12 @@ export const whoPegs = game=>{
     if( game.p1hand.find(sameCard(pc)) ) turn = 'p2';
     if( game.p2hand.find(sameCard(pc)) ) turn = 'p1';
 
-    const turnHand = turn === 'p2' ? game.p2hand : game.p1hand;
-    const otherHand = turn === 'p1' ? game.p2hand : game.p1hand;
+    const turnHand = (turn === 'p2' ? game.p2hand : game.p1hand).filter(hc => !game.pegs.find(sameCard(hc)) );
+    const otherHand = (turn === 'p1' ? game.p2hand : game.p1hand).filter(hc => !game.pegs.find(sameCard(hc)) );
     
     if( ( count < 31 ) &&
-        !turnHand.find(tc=> (Math.max(10, tc.rank) + count <= 31)) &&
-        otherHand.find(tc=> (Math.max(10, tc.rank) + count <= 31))
+        !turnHand.find(tc=> (Math.min(10, tc.rank) + count <= 31)) &&
+        otherHand.find(tc=> (Math.min(10, tc.rank) + count <= 31))
     ) turn = turn === 'p1' ? 'p2' : 'p1';
 
     // if neither, it's a go!
@@ -33,9 +33,9 @@ export const whoPegs = game=>{
 
 export const runPtsPerStack = stack => {
   for ( let i = stack.length; i>2; i--)
-    if ( stack.filter(c => c.card.rank)
+    if ( stack.filter(c => c.rank)
               .slice(-i)
-              .map( c => 1*c.card.rank )
+              .map( c => 1*c.rank )
               .sort((a, b) => (a - b))
               .reduce( (p, c, i, a) => ( p && ( (!i) || ( c - a[i-1] === 1)) ), true) &&
          stack.filter(c => c.card.rank).length > 2 )
@@ -44,9 +44,9 @@ export const runPtsPerStack = stack => {
   return 0;
 };
 
-export const pegScore = (played) => {
+export const pegScore = (played, p1hand, p2hand) => {
   const { count, stack } = played.reduce( (p, c, {
-    m: m = Math.min(10, c.card.rank||0)
+    m: m = Math.min(10, c.rank || 0)
   })=> (
     (p.count + m > 31) ?
     ({
@@ -54,7 +54,7 @@ export const pegScore = (played) => {
       stack: [c],
     }) : ({
       count: p.count + m,
-      stack: p.stack.concat(c),
+      stack: [...p.stack, c],
     })
     
   ), { count: 0, stack: []});
@@ -65,37 +65,63 @@ export const pegScore = (played) => {
   
   let pairLength = 0;
   for (let i=stack.length; i-->0;) {
-    if ( !('rank' in lastCard.card) ) break;
-    else if ( stack[i].card.rank === lastCard.card.rank ) pairLength++;
-    else if ( !('rank' in stack[i].card) ) {}
+    if ( !('rank' in lastCard) ) break;
+    else if ( stack[i].rank === lastCard.rank ) pairLength++;
+    else if ( !('rank' in stack[i]) ) {}
     else break;
   }
   
   const pairPts = (pairLength - 1) * pairLength;
   
   // if count is 15, onScoringEvent( lastPlayer, 2 )
-  const fifteenPts = ((lastCard||{}).card||{}).rank ? ((count === 15) ? 2 : 0) : 0;
+  const fifteenPts = lastCard?.rank && (count === 15) ? 2 : 0;
   
   // if last N cards are consecutive onScoringEvent( lastPlayer, N )
 
-  const runPts = ((lastCard||{}).card||{}).rank ? runPtsPerStack(stack) : 0;
+  const runPts = lastCard?.rank ? runPtsPerStack(stack) : 0;
   
   // if count === 31 onScoringEvent( lastPlayer, 2 )
-  const thirtyOnePts = ( (count === 31) && (lastCard.card.rank)) ? 2 : 0;
+  const thirtyOnePts = ( (count === 31) && lastCard.rank) ? 2 : 0;
   
-  // if both players passed, the later one gets the point
-  const secondLastCard = stack[stack.length-2];
-  const goPts = (!lastCard || !secondLastCard || count === 31) ? 0 :
-                1*( !('rank' in lastCard.card || 'rank' in secondLastCard.card ) );
+  // if neither player has any cards left to play within 31, 1 pt
+  const p1left = p1hand.filter(lc => !played.find(sameCard(lc)))
+                       .filter(lc => ((Math.min(10, lc.rank) + count) <= 31));
+  
+  const p2left = p2hand.filter(lc => !played.find(sameCard(lc)))
+                       .filter(lc => ((Math.min(10, lc.rank) + count) <= 31));
+
+  const goPts = !p1left.length && !p2left.length ? 1 : 0;
 
   const score = pairPts + fifteenPts + runPts + thirtyOnePts + goPts;
-  const player = (lastCard||{}).player;
 
-  return { score, player, count, stack };
+  return score;
 };
 
 
+export const randomCard = game=>{
+  const cards = [...game.p1hand, ...game.p2hand, ...game.p1crib, ...game.p2crib];
+  
+  let rank = game.p1hand[0]?.rank, suit = game.p1hand[0]?.suit;
+  
+  while( cards.find(sameCard({ rank, suit})) || (rank === undefined) ) {
+    rank = Math.floor(Math.random()*13) + 1;
+    suit = Math.floor(Math.random()*4);
+  }
 
+  return { rank, suit };
+};
+
+export const dealCards = (howMany=12)=>{
+  const cards = [];
+
+  while( cards.length < howMany )
+    cards.push( randomCard({ p1hand: cards, p2hand: [], p1crib: [], p2crib: [] }) );
+
+  return {
+    p1hand: cards.slice(0,6),
+    p2hand: cards.slice(6),
+  };
+};
 
 
 

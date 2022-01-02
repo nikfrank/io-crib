@@ -67,16 +67,3 @@ export const subGame = (boardId, cb)=> {
     unsub();
   };
 };
-
-export const randomCard = game=>{
-  const cards = [...game.p1hand, ...game.p2hand, ...game.p1crib, ...game.p2crib];
-
-  let rank = game.p1hand[0].rank, suit = game.p1hand[0].suit;
-  
-  while( cards.find(c => ((c.rank === rank) && (c.suit === suit))) ) {
-    rank = Math.floor(Math.random()*13);
-    suit = Math.floor(Math.random()*4);
-  }
-
-  return { rank, suit };
-}
