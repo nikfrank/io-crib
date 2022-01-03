@@ -38,8 +38,8 @@ export const runPtsPerStack = stack => {
               .map( c => 1*c.rank )
               .sort((a, b) => (a - b))
               .reduce( (p, c, i, a) => ( p && ( (!i) || ( c - a[i-1] === 1)) ), true) &&
-         stack.filter(c => c.card.rank).length > 2 )
-      return stack.filter(c => c.card.rank).slice(-i).length;
+         stack.filter(c => c.rank).length > 2 )
+      return stack.filter(c => c.rank).slice(-i).length;
   
   return 0;
 };
@@ -90,7 +90,7 @@ export const pegScore = (played, p1hand, p2hand) => {
   const p2left = p2hand.filter(lc => !played.find(sameCard(lc)))
                        .filter(lc => ((Math.min(10, lc.rank) + count) <= 31));
 
-  const goPts = !p1left.length && !p2left.length ? 1 : 0;
+  const goPts = !thirtyOnePts && !p1left.length && !p2left.length ? 1 : 0;
 
   const score = pairPts + fifteenPts + runPts + thirtyOnePts + goPts;
 

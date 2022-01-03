@@ -49,22 +49,75 @@ const defGame = {
 };
 
 const Logo = ()=> (<img src='favicon.ico' />);
-const Score = ({ game={ p1score: 0, p2score: 0 }}={})=> (<div>
-  <div>p1 = {game.p1score}</div>
-  <div>p2 = {game.p2score}</div>
-</div>);
+
+const trackx = (score, inset)=>(
+  (score > 0) && (score <= 30) ? 5 + (score * 87) / 30 :
+  (score > 30) && (score <= 60) ? (101 - inset*3) :
+  (score > 60) && (score <= 90) ? 8 + ((90 - score) * 87) / 30 :
+  (score > 90) && (score <= 120) ? -1 + inset*3 : 3.5
+);
+
+const tracky = (score, inset)=>(
+  ((score > 0) && (score <= 30)) ? -1 + inset*3 :
+  ((score > 30) && (score <= 60)) ? 5 + ((score-30) * 87) / 30 :
+  ((score > 60) && (score <= 90)) ? (101 - inset*3) :
+  ((score > 90) && (score <= 120)) ? 8 + ((120 - score) * 87) / 30 : 3.5
+);
+
+const trackPoints = Array(2).fill(0).map((_, inset)=>
+  Array(122).fill(0).map((_, score)=>
+    [trackx(score, inset+1), tracky(score, inset+1)]
+  )).flat().map(([ cx, cy ], i)=> <circle key={i} cx={cx} cy={cy} r={i === 121 ? 1.125 : 0.5} fill='black' />);
+
+const trackLines = [
+  [7, 93].map(e => Array(5)
+    .fill(0)
+    .map((_, i)=>  <line key={e+'a'+i} x1={i * 14.5 + 21} y1={100*Math.round(e / 100)} x2={i * 14.5 + 21} y2={e} /> )).flat(),
+  
+  [7, 93].map(e => Array(5)
+    .fill(0)
+    .map((_, i)=>  <line key={e+'b'+i} y1={i * 14.5 + 21} x1={100*Math.round(e / 100)} y2={i * 14.5 + 21} x2={e} /> )).flat(),
+].flat();
+
+const Track = ({ game: { p1score=0, p1prevscore=0, p2score=0, p2prevscore=0 }=
+  { p1score: 0, p1prevscore: 0, p2score: 0, p2prevscore: 0 }})=> (
+    <div className='score-track'>
+      <svg viewBox='0 0 100 100' preserveAspectRatio='none'>
+        <polygon
+          fill='#b90'
+          stroke='black'
+          strokeWidth='0.125'
+          points='0, 0 7, 7 7, 93 0, 100 0, 0 100, 0 93, 7 7, 7 0, 0 100, 0 100, 100 93, 93 93, 7 100, 0 100, 100 0, 100 7, 93 93, 93 100, 100 0, 100 7, 93 93, 93 93, 7 7, 7' />
+
+        {trackPoints}
+
+        {trackLines}
+
+        <circle cx={trackx(p1score, 1)} cy={tracky(p1score, 1)} r={.5} fill='#3d3' />
+        <circle cx={trackx(p1prevscore, 1)} cy={tracky(p1prevscore, 1)} r={.375} fill='#3d3' />
 
 
-const Menu = ({ user, newGame, boards, selectGame })=> user ? (
+        <circle cx={trackx(p2score, 2)} cy={tracky(p2score, 2)} r={0.5} fill='#d33' />
+        <circle cx={trackx(p2prevscore, 2)} cy={tracky(p2prevscore, 2)} r={.375} fill='#d33' />
+      </svg>
+    </div>
+  );
+
+
+const Menu = ({ user, newGame, boards, selectGame, p2mode=false })=> user ? (
   <div className='Menu'>
-    <button className='new-game' onClick={newGame}>New</button>
-    <img className='user' alt='' src={user.photoURL} />
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      <svg viewBox='0 0 2 2' style={{ margin: 2, width: 'calc(100% - 4px)', height: 'calc(100% - 4px)' }}>
+        <circle cx={1} cy={1} r={1} fill={p2mode ? '#d33' : '#3d3'} />
+      </svg>
+      <img className='user menu-user' alt='' src={user.photoURL} />
+    </div>
     <ul className='game-select'>
-      <li>Select Game</li>
+      <li><span>Select Game</span></li>
       {boards.map(board=> (
         <li key={board.id} onClick={()=> selectGame(board)}>
-          <img className='user' alt='' src={board.p1photo} />
-          <img className='user' alt='' src={board.p2photo} />
+          <span className='score'>{board.p1score}</span><img className='user' alt='' src={board.p1photo} />
+          <span className='score'>{board.p2score}</span><img className='user' alt='' src={board.p2photo} />
         </li>
       ))}
     </ul>
@@ -96,7 +149,7 @@ function App() {
 
   useEffect(()=>{
     auth().onAuthStateChanged((newUser) => {
-      console.log(newUser?.providerData[0]);
+      // console.log(newUser?.providerData[0]);
       if (!newUser) return;
       setUser(newUser.providerData[0]);
     })
@@ -104,6 +157,7 @@ function App() {
 
   useEffect(()=>{
     if(user) loadBoards(user.uid)
+      .then(boards=> boards.filter(b=> !b.phase.includes('won')))
       .then(boards=> (setBoards(boards), boards))
       .then(boards=> boards.length === 1 ? (
         setGame(boards[0]),
@@ -149,7 +203,7 @@ function App() {
     const cutCard = randomCard(game);
 
     const nextScores = (cutCard.rank === 11) && (game[cribP + 'score'] < 116) ? {
-      [cribP + 'prevscore']: game[cribP + 'score'],
+      [cribP + 'prevscore']: game[cribP + 'score'] || 0,
       [cribP + 'score']: game[cribP + 'score'] + 2,
     } : {};
     
@@ -175,13 +229,15 @@ function App() {
     const pegPoints = pegScore(nextPegs, game.p1hand, game.p2hand);
     const nextscore = game[p + 'score'] + pegPoints;
 
+    const nextPhase = nextscore > 120 ? p + '-won-' + cribP : game.pegs.length === 7 ? otherP + '-scores-' + cribP : game.phase;
+          
     return updateGame(game.id, {
       [p]: game[p],
       pegs: nextPegs,
-      phase: game.pegs.length === 7 ? otherP + '-scores-' + cribP : game.phase,
+      phase: nextPhase,
 
       [p + 'score']: nextscore,
-      [p + 'prevscore']: nextscore > game[p + 'score'] ? game[p + 'score'] : game[p + 'prevscore'],      
+      [p + 'prevscore']: nextscore > game[p + 'score'] || 0 ? game[p + 'score'] || 0 : game[p + 'prevscore'] || 0,
     });
   }, [game, p2mode]);
 
@@ -195,7 +251,7 @@ function App() {
 
     const nextscore = game[p + 'score'] + handscore + (p === cribP ? cribscore : 0);
     const nextPhase = (
-      nextscore >= 121 ? p + '-wins' :
+      nextscore >= 121 ? p + '-won-' + cribP :
       p === cribP ? 'deals-'+otherP :
       cribP + '-scores-' + cribP
     );
@@ -211,7 +267,7 @@ function App() {
     return updateGame(game.id, {
       [p]: game[p],
       [p + 'score']: nextscore,
-      [p + 'prevscore']: nextscore > game[p + 'score'] ? game[p + 'score'] : game[p + 'prevscore'],
+      [p + 'prevscore']: nextscore > game[p + 'score'] || 0 ? game[p + 'score'] || 0 : game[p + 'prevscore'] || 0,
       phase: nextPhase,
 
       ...nextHands,
@@ -240,10 +296,29 @@ function App() {
   
   return (
     <div className="App">
+      { (game?.phase || '').includes('won') && (game?.phase||'').includes('peg') ?
+        <div className='new-game'>
+          <span className={(game.phase.substr(0,2) === 'p2') === p2mode ? 'won' : 'lost'}>
+            {(game.phase.substr(0,2) === 'p2') === p2mode ?
+             'you won!': game.phase.includes('doubleshneider') ? 'you got double shneidered!' :
+             game.phase.includes('skunk') ? 'you got shneidered!!' : 'you lost!'}
+          </span>
+          <button className='peg-win' onClick={newGame}>New Game</button>
+        </div> :
+        
+        (game?.phase||'').includes('won') ? (
+          <div className='new-game'>
+            <span className={(game.phase.substr(0,2) === 'p2') === p2mode ? 'won' : 'lost'}>
+              {(game.phase.substr(0,2) === 'p2') === p2mode ? 'you won!' : 'you lost!'}
+            </span>
+            <button onClick={newGame}>New Game</button>
+          </div>
+        ) : (game?.phase||'').includes('new') ?
+        <button className='new-game' onClick={newGame}>New</button> : null }
+      
       <header className="App-header">
-        <Logo />
-        <Score game={game} />
-        <Menu user={user} newGame={newGame} selectGame={setGame} boards={boards} />
+        <Track game={game} />
+        <Menu user={user} selectGame={setGame} boards={boards} p2mode={p2mode} />
       </header>
       <div className='game-container'>
         <Game game={game} p2mode={p2mode} network={boundNetwork} />

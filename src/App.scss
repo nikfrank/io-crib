@@ -1,6 +1,7 @@
 .App {
   text-align: center;
-  background-color: #117221;
+  /* background-color: #117221; */
+  background-color: #2f4c3d;
   height: 100vh;
 
   display: flex;
@@ -28,35 +29,83 @@
 }
 
 
-img.github, img.user {
-  margin: 10px 0 0 50px;
+img.github, img.menu-user {
+  margin: 5px 10px 5px 40px;
   height: calc(100% - 10px);
   width: auto;
 }
 
-
-
-.Menu {
-  height: 30px;
-  flex-grow: 1;
+.new-game {
+  position: fixed;
+  top: 45vh;
+  max-width: 280px;
+  left: calc(50vw - 140px);
+  z-index: 2000;
 
   display: flex;
-  justify-contents: space-around;
-  
-  button.new-game {
-    height: 100%;
+  flex-direction: column;
+
+  span {
+    font-weight: bold;
+    font-size: 3rem;
+
+    &.lost {
+      color: #711;
+      background-color: #7117;
+      text-shadow: 1px 1px red;
+    }
+    &.won {
+      color: #171;
+      background-color: #1717;
+    }
   }
+  
+  button {
+    min-height: 10vh;
+    min-width: 10vh;
+
+    border-radius: 10px;
+    font-size: 3rem;
+
+    background-color: #0f02;
+    color: white;
+    font-weight: bold;
+    border-color: white;
+    border-width: 8px;
+    cursor: pointer;
+    padding: 10px;
+
+    &.peg-win {
+      background-color: #030e;
+    }
+  }
+}
+
+.Menu {
+  position: fixed;
+  top: 7vh;
+  height: 30px;
+  flex-grow: 1;
+  display: flex;
+  justify-content: space-between;
+  width: 86vw;
+  left: 7vw;
 
   .game-select {
     list-style: none;
     padding: 0;
+    margin: 0;
 
     position: absolute;
     right: 10px;
-    top: 20px;
+    top: 7px;
 
-    height: 30px;
+    height: 36px;
     overflow: hidden;
+
+    padding: 2px;
+    border-radius: 18px;
+    width: 180px;
 
     &:hover {
       height: initial;
@@ -64,13 +113,30 @@ img.github, img.user {
     }
 
     li {
-      height: 30px;      
+      height: 30px;
+      padding: 3px 0;
       background-color: #000c;
 
       display: flex;
+      justify-content: center;
+
+      &:hover {
+        background-color: #333c;
+      }
+      &:not(:first-child) {
+        cursor: pointer;
+      }
       
-      img {
+      span.score {
+        width: 50px;
+        font-size: 1.5rem;
+        margin-top: 2px;
+      }
+      span.score + img {
         height: 20px;
+        width: 40px;
+        margin: 5px 10px;
+        width: auto;
       }
     }
 

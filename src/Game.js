@@ -7,10 +7,10 @@ import { Hand } from 'react-deck-o-cards';
 import { sameCard, whoPegs, scorehand } from './crib-util';
 
 const defHandStyle = {
-  maxHeight:'32vh',
-  minHeight:'32vh',
+  maxHeight:'29vh',
+  minHeight:'29vh',
   
-  maxWidth:'100vw',
+  maxWidth:'86vw',
   padding: 0,
 };
 
@@ -54,12 +54,12 @@ const PhaseButton = ({ phase, onClick, p2mode, handScores={}, selectedCount=0 })
        </button>
        
     ) : phase === 'cut-cribs-p1' ? (
-       <button disabled={p2mode} onClick={onClick}>
-         {p2mode ? 'waiting for p1 to cut' :'Cut!'}
+       <button disabled={!p2mode} onClick={onClick}>
+         {!p2mode ? 'waiting for p2 to cut' :'Cut!'}
        </button>
     ) : phase === 'cut-cribs-p2' ? (
-       <button disabled={!p2mode} onClick={onClick}>
-         {!p2mode ? 'waiting for p1 to cut' :'Cut!'}
+       <button disabled={p2mode} onClick={onClick}>
+         {p2mode ? 'waiting for p1 to cut' :'Cut!'}
        </button>
        
     ) : phase === 'both-cribs-p1' ? (
@@ -128,8 +128,6 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
   
   const [selectedCards, setSelectedCards] = useState([]);
 
-  useEffect(()=> console.log(phase), [phase]);
-
   const myPegHand = useMemo(()=> (
     (p2mode ? p2hand : p1hand).filter(hc => !pegs.find(sameCard(hc)))
   ), [p2mode, p2hand, p1hand, pegs]);
@@ -170,8 +168,8 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
 
 
   const handScores = useMemo(()=> !phase.includes('scores') ? {} : {
-    p1: console.log('p1')||scorehand(game.p1hand, game.cut),
-    p2: console.log('p2')||scorehand(game.p2hand, game.cut),
+    p1: scorehand(game.p1hand, game.cut),
+    p2: scorehand(game.p2hand, game.cut),
     [phase.substr(-2) + 'crib']: scorehand([...game.p1crib, ...game.p2crib], game.cut),
   }, [phase, game]);
 
@@ -194,7 +192,7 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
 
       <div className='peg'>
         {phase.includes('peg') ? (
-           <div className='peg-container'>
+           <div className='peg-container hand'>
              <Hand cards={currentPeg.stack} hidden={false} style={pegHandStyle} onClick={()=>0} />
              <div className='peg-total'>{currentPeg.count}</div>
            </div>
