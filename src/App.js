@@ -161,10 +161,10 @@ function App() {
       .then(boards=> (setBoards(boards), boards))
       .then(boards=> boards.length === 1 ? (
         setGame(boards[0]),
-        setP2mode(user.uid === boards[0].p2)
+        setP2mode(user.uid === boards[0]?.p2)
       ): (
         setGame(boards[boards.length-1]),
-        setP2mode(user.uid === boards[boards.length-1].p2)
+        setP2mode(user.uid === boards[boards.length-1]?.p2)
       ));
   }, [user, created]);
 

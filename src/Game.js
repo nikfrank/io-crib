@@ -15,7 +15,7 @@ const defHandStyle = {
 };
 
 const pegHandStyle = {
-  maxHeight: '100%',
+  maxHeight: '27vh',
   maxWidth:'100vw',
   padding: 0,  
 };

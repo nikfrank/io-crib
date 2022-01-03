@@ -4,9 +4,15 @@ export const whoPegs = game=>{
   // phase says whose crib
   // other player played first
   // back and forth, unless turn can't pay but other can
-
+  
   let turn = game.phase.substr(-2) === 'p2' ? 'p1' : 'p2';
   let count = 0;
+
+  const p1hand = game.p1hand.filter(hc => !game.pegs.find(sameCard(hc)));
+  const p2hand = game.p2hand.filter(hc => !game.pegs.find(sameCard(hc)));
+
+  if( p1hand.length && !p2hand.length ) return 'p1';
+  if( p2hand.length && !p1hand.length ) return 'p2';
   
   game.pegs.forEach(pc => {
     const nextCount = count + Math.min(10, pc.rank);
@@ -16,9 +22,9 @@ export const whoPegs = game=>{
     if( game.p1hand.find(sameCard(pc)) ) turn = 'p2';
     if( game.p2hand.find(sameCard(pc)) ) turn = 'p1';
 
-    const turnHand = (turn === 'p2' ? game.p2hand : game.p1hand).filter(hc => !game.pegs.find(sameCard(hc)) );
-    const otherHand = (turn === 'p1' ? game.p2hand : game.p1hand).filter(hc => !game.pegs.find(sameCard(hc)) );
-    
+    const turnHand = turn === 'p2' ? p2hand : p1hand;
+    const otherHand = turn === 'p2' ? p1hand : p2hand;
+
     if( ( count < 31 ) &&
         !turnHand.find(tc=> (Math.min(10, tc.rank) + count <= 31)) &&
         otherHand.find(tc=> (Math.min(10, tc.rank) + count <= 31))
