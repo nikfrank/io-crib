@@ -31,21 +31,21 @@ const mockHands = [
 const mockGame = { p1: { score: 0, hand: mockHands[0] }, p2: { score: 0, hand: mockHands[1] }};
 
 const defGame = {
-  cut: "",
-  p1: "66971604",
+  cut: {},
+  p1: "",
   p1crib: [],
-  p1hand: mockHands[0],
+  p1hand: [],
   p1photo: "",
   p1prevScore: 0,
   p1score: 0,
-  p2: "6264797",
+  p2: "",
   p2crib: [],
-  p2hand: mockHands[1],
-  p2photo: "https://avatars.githubusercontent.com/u/6264797?v=4",
+  p2hand: [],
+  p2photo: "",
   p2prevScore: 0,
   p2score: 0,
   pegs: [],
-  phase: "deals-p1",
+  phase: "new",
 };
 
 const Logo = ()=> (<img src='favicon.ico' />);
@@ -107,9 +107,15 @@ const Track = ({ game: { p1score=0, p1prevscore=0, p2score=0, p2prevscore=0 }=
 const Menu = ({ user, newGame, boards, selectGame, p2mode=false })=> user ? (
   <div className='Menu'>
     <div style={{ display: 'flex', alignItems: 'center' }}>
-      <svg viewBox='0 0 2 2' style={{ margin: 2, width: 'calc(100% - 4px)', height: 'calc(100% - 4px)' }}>
-        <circle cx={1} cy={1} r={1} fill={p2mode ? '#d33' : '#3d3'} />
-      </svg>
+      {boards.find(g => ((g.p1 === user.uid) || (g.p2 === user.uid))) ? (
+         <svg viewBox='0 0 2 2' style={{ margin: 2, width: 'calc(100% - 4px)', height: 'calc(100% - 4px)' }}>
+           <circle cx={1} cy={1} r={1} fill={p2mode ? '#d33' : '#3d3'} />
+         </svg>
+      ): (
+         <button onClick={newGame}>
+           New Game
+         </button>
+      )}
       <img className='user menu-user' alt='' src={user.photoURL} />
     </div>
     <ul className='game-select'>
@@ -143,9 +149,19 @@ function App() {
   const [boards, setBoards] = useState([]);
   
   const [user, setUser] = useState(null);
-  const [created, setCreated] = useState(0);
 
   const [p2mode, setP2mode] = useState(false);
+
+  const refreshBoards = useMemo(()=> (uid)=> (
+    loadBoards(uid)
+      .then(boards=> boards.filter(b=> !b.phase.includes('won')))
+      .then(boards=> (setBoards(boards), boards))
+      //.then(boards=> (
+      //  setGame( boards.find(b=> ([b.p1, b.p2].includes(user.uid))) ),
+      //  subGame( boards.find(b=> ([b.p1, b.p2].includes(user.uid))), setGame ),
+      //  setP2mode(user.uid === boards.find(b=> ([b.p1, b.p2].includes(user.uid)))?.p2)
+      //))
+  ), [boards, setBoards]);
 
   useEffect(()=>{
     auth().onAuthStateChanged((newUser) => {
@@ -155,23 +171,14 @@ function App() {
     })
   }, []);
 
-  useEffect(()=>{
-    if(user) loadBoards(user.uid)
-      .then(boards=> boards.filter(b=> !b.phase.includes('won')))
-      .then(boards=> (setBoards(boards), boards))
-      .then(boards=> boards.length === 1 ? (
-        setGame(boards[0]),
-        setP2mode(user.uid === boards[0]?.p2)
-      ): (
-        setGame(boards[boards.length-1]),
-        setP2mode(user.uid === boards[boards.length-1]?.p2)
-      ));
-  }, [user, created]);
+  useEffect(()=> user ? (void refreshBoards(user.uid)) : null, [user]);
 
-  const newGame = useMemo(()=> ()=> createGame({ ...defGame, p1: user.uid }).then(()=> setCreated(i => i++)), [user]);
+  const newGame = useMemo(()=> ()=> createGame({
+    ...defGame,
+    p1: user.uid,
+    p1photo: user.photoURL,
+  }).then(()=> refreshBoards(user.uid)), [user]);
 
-  const gameId = useMemo(()=> game ? game.id : null, [game]);
-  useEffect(()=> gameId ? subGame(gameId, setGame) : undefined, [gameId]);
 
   // calculate memos for bound network functions to:
 
@@ -293,6 +300,36 @@ function App() {
     takePoints,
     dealHands,
   }), [ putInCrib, cutTheDeck, playPegCard, takePoints, dealHands ]);
+
+  const selectGame = useMemo(()=> nextGame=> {
+    if( (nextGame.p1 === user.uid) || (nextGame.p2 === user.uid) ) {
+      setGame(nextGame);
+      setP2mode(nextGame.p2 === user.uid);
+      subGame( nextGame.id, setGame );
+      
+      return Promise.resolve(nextGame);
+      
+    } else {
+      // add the user to the game
+      const p = nextGame.p1 ? 'p2' : 'p1';
+      
+      return updateGame(nextGame.id, {
+        [p]: user.uid,
+        [p + 'photo']: user.photoURL,
+      }).then(()=> refreshBoards(user.uid))
+    }
+    
+  }, [setGame, user, refreshBoards]);
+
+  const startGame = useMemo(()=> ()=> {    
+    const p = p2mode ? 'p2' : 'p1';
+    const dealer = game.id.charCodeAt(0) % 2 ? 'p1' : 'p2';
+    
+    return updateGame(game.id, {
+      phase: 'deals-' + dealer,
+    });
+  }, [game]);
+  
   
   return (
     <div className="App">
@@ -312,13 +349,19 @@ function App() {
               {(game.phase.substr(0,2) === 'p2') === p2mode ? 'you won!' : 'you lost!'}
             </span>
             <button onClick={newGame}>New Game</button>
+            {/* here, if both players hit newGame within 10 seconds, they should join the same game */}
           </div>
-        ) : (game?.phase||'').includes('new') ?
-        <button className='new-game' onClick={newGame}>New</button> : null }
+        ) : (game?.phase||'').includes('new') ? (
+          <div className='new-game'>
+            <button disabled={!game.p1 || !game.p2} onClick={startGame}>
+              Start!
+            </button>
+          </div>
+        ): null }
       
       <header className="App-header">
         <Track game={game} />
-        <Menu user={user} selectGame={setGame} boards={boards} p2mode={p2mode} />
+        <Menu user={user} selectGame={selectGame} newGame={newGame} boards={boards} p2mode={p2mode} />
       </header>
       <div className='game-container'>
         <Game game={game} p2mode={p2mode} network={boundNetwork} />

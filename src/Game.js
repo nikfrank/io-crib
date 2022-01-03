@@ -41,6 +41,11 @@ const cutHandStyle = {
 
 const emptyGame = { p1: '', p2: '', p1hand: [], p2hand: [], pegs: [], phase: 'p1-deals' };
 
+const PegArrow = ({ game, p2mode })=> {
+  const who = useMemo(()=> whoPegs(game), [game]);
+
+  return <div className='peg-arrow'>{(who === 'p2') === p2mode ? '\\/' : '/\\'}</div>;
+};
 
 const PhaseButton = ({ phase, onClick, p2mode, handScores={}, selectedCount=0 })=> (
   <div className='PhaseButton'>
@@ -184,9 +189,12 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
                  style={defHandStyle}
                  onClick={card=> setSelectedCards(prv=> prv.includes(card) ? prv.filter(c=> c !== card) : [...prv, card])} />
         ) : (
-           <Hand cards={myPegHand}
-                 hidden={false} style={defHandStyle}
-                 onClick={phaseClick} />
+           <>
+             <Hand cards={myPegHand}
+                   hidden={false} style={defHandStyle}
+                   onClick={phaseClick} />
+             <PegArrow game={game} p2mode={p2mode} />
+           </>
         )}
       </div>
 

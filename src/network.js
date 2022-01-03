@@ -42,7 +42,11 @@ export const loadBoards = userId=>
       .where('p2', '==', '').get()
       .then(snap => snap.docs),
 
-  ]).then(g => g.flat().map(game => ({ ...game.data(), id: game.id })) );
+  ]).then(g => g
+    .flat()
+    .map(game => ({ ...game.data(), id: game.id }))
+    .reduce((games, game)=> games.find(g=> game.id === g.id) ? games : [...games, game], [])
+  );
 
 
 export const joinGame = ({ boardId, userId, asPlayer })=>
@@ -56,14 +60,11 @@ export const updateGame = (boardId, board) => db.collection('boards').doc(boardI
 
 let cbs = [];
 export const subGame = (boardId, cb)=> {
-  cbs.push(cb);
+  if( cbs.length ) cbs[1](); // unsub
   
-  const unsub = onSnapshot(doc(db, 'boards', boardId), (doc) => {
-    cbs.forEach(c=> c(doc.data()));
+  cbs[0] = cb;
+  
+  cbs[1] = onSnapshot(doc(db, 'boards', boardId), (doc) => {
+    cbs[0]({ ...doc.data(), id: boardId })
   });
-
-  return ()=> {
-    cbs = cbs.filter(c => c !== cb);
-    unsub();
-  };
 };
