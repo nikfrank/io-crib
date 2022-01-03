@@ -50,13 +50,14 @@ img.github, img.menu-user {
     font-size: 3rem;
 
     &.lost {
-      color: #711;
-      background-color: #7117;
-      text-shadow: 1px 1px red;
+      color: #f11;
+      background-color: #d117;
+      text-shadow: 1px 1px 5px #711;
     }
     &.won {
-      color: #171;
-      background-color: #1717;
+      color: #1f1;
+      background-color: #1d17;
+      text-shadow: 1px 1px 5px #171;
     }
   }
   
@@ -69,6 +70,7 @@ img.github, img.menu-user {
 
     background-color: #0f02;
     color: white;
+    text-shadow: 1px 1px 5px black;
     font-weight: bold;
     border-color: white;
     border-width: 8px;
