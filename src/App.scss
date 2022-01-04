@@ -6,6 +6,8 @@
 
   display: flex;
   flex-direction: column;
+
+  overflow: hidden;
 }
 
 .App-logo {
@@ -155,4 +157,5 @@ button.login {
   position: fixed;
   top: 45vh;
   left: 45vw;
+  z-index: 8000;
 }
