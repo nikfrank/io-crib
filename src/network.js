@@ -65,6 +65,7 @@ export const subGame = (boardId, cb)=> {
   cbs[0] = cb;
   
   cbs[1] = onSnapshot(doc(db, 'boards', boardId), (doc) => {
-    cbs[0]({ ...doc.data(), id: boardId })
+    cbs[0]({ ...doc.data(), id: boardId });
   });
+
 };

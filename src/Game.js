@@ -163,13 +163,21 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
     }
     else if( phase.includes('peg') ){
       // is it my turn to play a peg card?
-      if(p2mode === (whoPegs(game) === 'p2')) playPegCard(cardId);
+      if(p2mode === (whoPegs(game) === 'p2')){
+        const myLeft = game[p2mode ? 'p2hand' : 'p1hand'].filter(c => !pegs.find( sameCard(c) ));
+        
+        if(
+          ( myLeft.find(c => ((Math.min(10, c.rank) + currentPeg.count) <= 31)) ) &&
+          ( Math.min(10, myLeft[cardId].rank) + currentPeg.count > 31 )
+        ) console.log('not allowed');
+        else playPegCard(cardId);
+      }
       else console.log('not my turn');
       
     } else if( phase.includes('scores') ) takePoints();
     else if( phase.includes('deal') ) dealHands();
     
-  }, [phase, game, p2mode, selectedCards, network]);
+  }, [phase, game, p2mode, selectedCards, network, currentPeg]);
 
 
   const handScores = useMemo(()=> !phase.includes('scores') ? {} : {

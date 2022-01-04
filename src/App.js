@@ -104,7 +104,7 @@ const Track = ({ game: { p1score=0, p1prevscore=0, p2score=0, p2prevscore=0 }=
   );
 
 
-const Menu = ({ user, newGame, boards, selectGame, p2mode=false })=> user ? (
+const Menu = ({ user, newGame, boards, refreshBoards, selectGame, p2mode=false })=> user ? (
   <div className='Menu'>
     <div style={{ display: 'flex', alignItems: 'center' }}>
       {boards.find(g => ((g.p1 === user.uid) || (g.p2 === user.uid))) ? (
@@ -119,13 +119,14 @@ const Menu = ({ user, newGame, boards, selectGame, p2mode=false })=> user ? (
       <img className='user menu-user' alt='' src={user.photoURL} />
     </div>
     <ul className='game-select'>
-      <li><span>Select Game</span></li>
+      <li onClick={()=> refreshBoards(user.uid)}><span>Select Game</span></li>
       {boards.map(board=> (
         <li key={board.id} onClick={()=> selectGame(board)}>
           <span className='score'>{board.p1score}</span><img className='user' alt='' src={board.p1photo} />
           <span className='score'>{board.p2score}</span><img className='user' alt='' src={board.p2photo} />
         </li>
       ))}
+      <li onClick={newGame}><span>New Game</span></li>
     </ul>
   </div>
 ) : (
@@ -156,11 +157,11 @@ function App() {
     loadBoards(uid)
       .then(boards=> boards.filter(b=> !b.phase.includes('won')))
       .then(boards=> (setBoards(boards), boards))
-      //.then(boards=> (
-      //  setGame( boards.find(b=> ([b.p1, b.p2].includes(user.uid))) ),
-      //  subGame( boards.find(b=> ([b.p1, b.p2].includes(user.uid))), setGame ),
-      //  setP2mode(user.uid === boards.find(b=> ([b.p1, b.p2].includes(user.uid)))?.p2)
-      //))
+    //.then(boards=> (
+    //  setGame( boards.find(b=> ([b.p1, b.p2].includes(user.uid))) ),
+    //  subGame( boards.find(b=> ([b.p1, b.p2].includes(user.uid))), setGame ),
+    //  setP2mode(user.uid === boards.find(b=> ([b.p1, b.p2].includes(user.uid)))?.p2)
+    //))
   ), [boards, setBoards]);
 
   useEffect(()=>{
@@ -177,7 +178,15 @@ function App() {
     ...defGame,
     p1: user.uid,
     p1photo: user.photoURL,
-  }).then(()=> refreshBoards(user.uid)), [user]);
+  }).then(()=> refreshBoards(user.uid).then(boards=> {
+    const newest = boards.filter(b => ((!b.p1 && (b.p2 === user.uid)) || (!b.p2 &&  (b.p1 === user.uid))) )[0];
+    
+    if( newest ) {
+      setGame(newest);
+      setP2mode(newest.p2 === user.uid);
+      subGame( newest.id, setGame );
+    }
+  })), [user, setGame, setP2mode]);
 
 
   // calculate memos for bound network functions to:
@@ -236,8 +245,19 @@ function App() {
     const pegPoints = pegScore(nextPegs, game.p1hand, game.p2hand);
     const nextscore = game[p + 'score'] + pegPoints;
 
-    const nextPhase = nextscore > 120 ? p + '-won-' + cribP : game.pegs.length === 7 ? otherP + '-scores-' + cribP : game.phase;
-          
+    const nextPhase = (
+      nextscore >= 121
+    ) ? (
+      game[(p2mode ? 'p1' : 'p2') + 'score'] <= 60 ? (
+        (p + '-doubleshneider-won-' + cribP )
+      ) : game[(p2mode ? 'p1' : 'p2') + 'score'] <= 90 ? (
+        (p + '-skunk-won-' + cribP )
+      ) : (p + '-won-' + cribP)
+    ) : (
+      game.pegs.length === 7 ) ? (
+        otherP + '-scores-' + cribP
+      ) : game.phase;
+    
     return updateGame(game.id, {
       [p]: game[p],
       pegs: nextPegs,
@@ -258,7 +278,13 @@ function App() {
 
     const nextscore = game[p + 'score'] + handscore + (p === cribP ? cribscore : 0);
     const nextPhase = (
-      nextscore >= 121 ? p + '-won-' + cribP :
+      nextscore >= 121 ? (
+        game[(p2mode ? 'p1' : 'p2') + 'score'] <= 60 ? (
+          (p + '-doubleshneider-won-' + cribP )
+        ) : game[(p2mode ? 'p1' : 'p2') + 'score'] <= 90 ? (
+          (p + '-skunk-won-' + cribP )
+        ) : (p + '-won-' + cribP)
+      ) :
       p === cribP ? 'deals-'+otherP :
       cribP + '-scores-' + cribP
     );
@@ -346,7 +372,10 @@ function App() {
         (game?.phase||'').includes('won') ? (
           <div className='new-game'>
             <span className={(game.phase.substr(0,2) === 'p2') === p2mode ? 'won' : 'lost'}>
-              {(game.phase.substr(0,2) === 'p2') === p2mode ? 'you won!' : 'you lost!'}
+              {(game.phase.substr(0,2) === 'p2') === p2mode ?
+               'you won!': game.phase.includes('doubleshneider') ? 'you got double shneidered!' :
+               game.phase.includes('skunk') ? 'you got shneidered!!' : 'you lost!'
+              }
             </span>
             <button onClick={newGame}>New Game</button>
             {/* here, if both players hit newGame within 10 seconds, they should join the same game */}
@@ -361,7 +390,8 @@ function App() {
       
       <header className="App-header">
         <Track game={game} />
-        <Menu user={user} selectGame={selectGame} newGame={newGame} boards={boards} p2mode={p2mode} />
+        <Menu user={user} selectGame={selectGame} newGame={newGame}
+              boards={boards} refreshBoards={refreshBoards} p2mode={p2mode} />
       </header>
       <div className='game-container'>
         <Game game={game} p2mode={p2mode} network={boundNetwork} />
