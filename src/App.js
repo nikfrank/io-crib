@@ -255,7 +255,7 @@ function App() {
       ) : (p + '-won-' + cribP)
     ) : (
       game.pegs.length === 7 ) ? (
-        otherP + '-scores-' + cribP
+        'done-peg-'+cribP
       ) : game.phase;
     
     return updateGame(game.id, {
@@ -267,6 +267,17 @@ function App() {
       [p + 'prevscore']: nextscore > game[p + 'score'] || 0 ? game[p + 'score'] || 0 : game[p + 'prevscore'] || 0,
     });
   }, [game, p2mode]);
+
+  const donePeg = useMemo(()=> ()=> {
+    const p = p2mode ? 'p2' : 'p1';
+    const cribP = game.phase.substr(-2);
+    const otherP = cribP === 'p1' ? 'p2' : 'p1';
+
+    return updateGame(game.id, {
+      [p]: game[p],
+      phase: otherP + '-scores-' + cribP,
+    });
+  }, [game]);
 
   const takePoints = useMemo(()=> ()=> {
     const p = p2mode ? 'p2' : 'p1';
@@ -325,7 +336,8 @@ function App() {
     playPegCard,
     takePoints,
     dealHands,
-  }), [ putInCrib, cutTheDeck, playPegCard, takePoints, dealHands ]);
+    donePeg,
+  }), [ putInCrib, cutTheDeck, playPegCard, takePoints, dealHands, donePeg ]);
 
   const selectGame = useMemo(()=> nextGame=> {
     if( (nextGame.p1 === user.uid) || (nextGame.p2 === user.uid) ) {

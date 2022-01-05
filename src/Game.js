@@ -51,69 +51,71 @@ const PhaseButton = ({ phase, onClick, p2mode, handScores={}, selectedCount=0 })
   <div className='PhaseButton'>
     {phase === 'deals-p1' ? (
        <button disabled={p2mode} onClick={onClick}>
-         {p2mode ? 'waiting for p1 to deal' :'Deal!'}
+         {p2mode ? 'p1 to deal' :'Deal!'}
        </button>
     ) : phase === 'deals-p2' ? (
        <button disabled={!p2mode} onClick={onClick}>
-         {!p2mode ? 'waiting for p2 to deal' :'Deal!'}
+         {!p2mode ? 'p2 to deal' :'Deal!'}
        </button>
        
     ) : phase === 'cut-cribs-p1' ? (
        <button disabled={!p2mode} onClick={onClick}>
-         {!p2mode ? 'waiting for p2 to cut' :'Cut!'}
+         {!p2mode ? 'p2 to cut' :'Cut!'}
        </button>
     ) : phase === 'cut-cribs-p2' ? (
        <button disabled={p2mode} onClick={onClick}>
-         {p2mode ? 'waiting for p1 to cut' :'Cut!'}
+         {p2mode ? 'p1 to cut' :'Cut!'}
        </button>
        
     ) : phase === 'both-cribs-p1' ? (
-      <button disabled={selectedCount !== 2} onClick={onClick}>
-        Put selected cards into {p2mode ? 'opponent\'s' : 'my'} crib
-      </button>
+       <button disabled={selectedCount !== 2} onClick={onClick}>
+         Put cards to {p2mode ? 'p2\'s' : 'my'} crib
+       </button>
     ) : phase === 'both-cribs-p2' ? (
-      <button disabled={selectedCount !== 2} onClick={onClick}>
-        Put selected cards into {!p2mode ? 'opponent\'s' : 'my'} crib
-      </button>
-      
+       <button disabled={selectedCount !== 2} onClick={onClick}>
+         Put cards to {!p2mode ? 'p1\'s' : 'my'} crib
+       </button>
+       
     ) : phase === 'p1-cribs-p1' ? (
-      <button disabled={p2mode || (selectedCount !== 2)} onClick={onClick}>
-        {p2mode ? 'waiting for p1 to put cards into crib' :'Put selected cards into my crib'}
-      </button>
+       <button disabled={p2mode || (selectedCount !== 2)} onClick={onClick}>
+         {p2mode ? 'p1 to put cards to crib' :'Put cards to my crib'}
+       </button>
     ) : phase === 'p2-cribs-p1' ? (
-      <button disabled={!p2mode || (selectedCount !== 2)} onClick={onClick}>
-        {!p2mode ? 'waiting for p2 to put cards into crib' :'Put selected cards into opponent\'s crib'}
-      </button>
+       <button disabled={!p2mode || (selectedCount !== 2)} onClick={onClick}>
+         {!p2mode ? 'p2 to put cards to crib' :'Put cards into p1\'s crib'}
+       </button>
     ) : phase === 'p1-cribs-p2' ? (
-      <button disabled={p2mode || (selectedCount !== 2)} onClick={onClick}>
-        {p2mode ? 'waiting for p1 to put cards into crib' :'Put selected cards into opponent\'s crib'}
-      </button>
+       <button disabled={p2mode || (selectedCount !== 2)} onClick={onClick}>
+         {p2mode ? 'p1 to put cards to crib' :'Put selected cards into p2\'s crib'}
+       </button>
     ) : phase === 'p2-cribs-p2' ? (
-      <button disabled={!p2mode || (selectedCount !== 2)} onClick={onClick}>
-        {!p2mode ? 'waiting for p2 to put cards into crib' :'Put selected cards into my crib'}
-      </button>
-      
+       <button disabled={!p2mode || (selectedCount !== 2)} onClick={onClick}>
+         {!p2mode ? 'p2 to put cards to crib' :'Put cards to my crib'}
+       </button>
+    ) : phase === 'done-peg' ? (
+       <button onClick={onClick}>
+         Done
+       </button>
+       
     ) : phase === 'p1-scores-p1' ? (
-      <button disabled={p2mode} onClick={onClick}>
-        {p2mode ? `waiting for p1 to take ${handScores.p1} + ${handScores.p1crib} points` :
-         `Take ${handScores.p1} + ${handScores.p1crib} points`}
-      </button>
+       <button disabled={p2mode} onClick={onClick}>
+         {p2mode ? `p1: ${handScores.p1} + ${handScores.p1crib} pts` :
+          `Take ${handScores.p1} + ${handScores.p1crib} pts`}
+       </button>
     ) : phase === 'p2-scores-p1' ? (
-      <button disabled={!p2mode} onClick={onClick}>
-        {!p2mode ? `waiting for p2 to take ${handScores.p2} points` : `Take ${handScores.p2} points`}
-      </button>
+       <button disabled={!p2mode} onClick={onClick}>
+         {!p2mode ? `p2: ${handScores.p2} pts` : `Take ${handScores.p2} pts`}
+       </button>
     ) : phase === 'p1-scores-p2' ? (
-      <button disabled={p2mode} onClick={onClick}>
-        {p2mode ? `waiting for p1 to take ${handScores.p1} points` : `Take ${handScores.p1} points`}
-      </button>
+       <button disabled={p2mode} onClick={onClick}>
+         {p2mode ? `p1: ${handScores.p1} pts` : `Take ${handScores.p1} pts`}
+       </button>
     ) : phase === 'p2-scores-p2' ? (
-      <button disabled={!p2mode} onClick={onClick}>
-        {!p2mode ? `waiting for p2 to take ${handScores.p2} + ${handScores.p2crib} points` :
-         `Take ${handScores.p2} + ${handScores.p2crib} points`}
-      </button>
-    ) : null
-      
-    }
+       <button disabled={!p2mode} onClick={onClick}>
+         {!p2mode ? `p2 to take ${handScores.p2} + ${handScores.p2crib} pts` :
+          `Take ${handScores.p2} + ${handScores.p2crib} pts`}
+       </button>
+    ) : null}
   </div>
 );
 
@@ -153,7 +155,7 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
   //   import bound network calls from App
   //   state will propagate back down through props.game
 
-  const { putInCrib, cutTheDeck, playPegCard, takePoints, dealHands } = network;
+  const { putInCrib, cutTheDeck, playPegCard, takePoints, dealHands, donePeg } = network;
 
   const phaseClick = useCallback(cardId=> {
     if( finePhase.includes('cut') ) cutTheDeck();
@@ -162,8 +164,10 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
       setSelectedCards([]);
     }
     else if( phase.includes('peg') ){
+      if( phase.includes('done') ) donePeg();
+
       // is it my turn to play a peg card?
-      if(p2mode === (whoPegs(game) === 'p2')){
+      else if(p2mode === (whoPegs(game) === 'p2')){
         const myLeft = game[p2mode ? 'p2hand' : 'p1hand'].filter(c => !pegs.find( sameCard(c) ));
         
         if(
@@ -209,8 +213,12 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
       <div className='peg'>
         {phase.includes('peg') ? (
            <div className='peg-container hand'>
-             <Hand cards={currentPeg.stack} hidden={false} style={pegHandStyle} onClick={()=>0} />
+             <Hand cards={[...currentPeg.stack, ...(Array(Math.max(0, 6-currentPeg.stack.length)).fill({ rank: 0 }) )]}
+                   hidden={false} style={pegHandStyle} onClick={()=>0} />
              <div className='peg-total'>{currentPeg.count}</div>
+             {
+               phase.includes('done') ? <PhaseButton phase='done-peg' onClick={donePeg} /> : null
+             }
            </div>
         ) : <PhaseButton
               phase={finePhase}
