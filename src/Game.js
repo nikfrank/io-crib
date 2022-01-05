@@ -6,6 +6,10 @@ import { Hand } from 'react-deck-o-cards';
 
 import { sameCard, whoPegs, scorehand } from './crib-util';
 
+const fillTo = (n, hand)=> (
+  [...hand, ...(Array(Math.max(0, n-hand.length)).fill({ rank: 0 }) )]
+);
+
 const defHandStyle = {
   maxHeight:'29vh',
   minHeight:'29vh',
@@ -69,28 +73,28 @@ const PhaseButton = ({ phase, onClick, p2mode, handScores={}, selectedCount=0 })
        
     ) : phase === 'both-cribs-p1' ? (
        <button disabled={selectedCount !== 2} onClick={onClick}>
-         Put cards to {p2mode ? 'p2\'s' : 'my'} crib
+         Put cards in {p2mode ? 'p2\'s' : 'my'} crib
        </button>
     ) : phase === 'both-cribs-p2' ? (
        <button disabled={selectedCount !== 2} onClick={onClick}>
-         Put cards to {!p2mode ? 'p1\'s' : 'my'} crib
+         Put cards in {!p2mode ? 'p1\'s' : 'my'} crib
        </button>
        
     ) : phase === 'p1-cribs-p1' ? (
        <button disabled={p2mode || (selectedCount !== 2)} onClick={onClick}>
-         {p2mode ? 'p1 to put cards to crib' :'Put cards to my crib'}
+         {p2mode ? 'p1... put cards in crib' :'Put cards in my crib'}
        </button>
     ) : phase === 'p2-cribs-p1' ? (
        <button disabled={!p2mode || (selectedCount !== 2)} onClick={onClick}>
-         {!p2mode ? 'p2 to put cards to crib' :'Put cards into p1\'s crib'}
+         {!p2mode ? 'p2... put cards in crib' :'Put cards in p1\'s crib'}
        </button>
     ) : phase === 'p1-cribs-p2' ? (
        <button disabled={p2mode || (selectedCount !== 2)} onClick={onClick}>
-         {p2mode ? 'p1 to put cards to crib' :'Put selected cards into p2\'s crib'}
+         {p2mode ? 'p1... put cards in crib' :'Put cards in p2\'s crib'}
        </button>
     ) : phase === 'p2-cribs-p2' ? (
        <button disabled={!p2mode || (selectedCount !== 2)} onClick={onClick}>
-         {!p2mode ? 'p2 to put cards to crib' :'Put cards to my crib'}
+         {!p2mode ? 'p2... put cards to crib' :'Put cards in my crib'}
        </button>
     ) : phase === 'done-peg' ? (
        <button onClick={onClick}>
@@ -202,7 +206,7 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
                  onClick={card=> setSelectedCards(prv=> prv.includes(card) ? prv.filter(c=> c !== card) : [...prv, card])} />
         ) : (
            <>
-             <Hand cards={myPegHand}
+             <Hand cards={fillTo(4, myPegHand)}
                    hidden={false} style={defHandStyle}
                    onClick={phaseClick} />
              <PegArrow game={game} p2mode={p2mode} />
@@ -213,7 +217,7 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
       <div className='peg'>
         {phase.includes('peg') ? (
            <div className='peg-container hand'>
-             <Hand cards={[...currentPeg.stack, ...(Array(Math.max(0, 6-currentPeg.stack.length)).fill({ rank: 0 }) )]}
+             <Hand cards={fillTo(6, currentPeg.stack)}
                    hidden={false} style={pegHandStyle} onClick={()=>0} />
              <div className='peg-total'>{currentPeg.count}</div>
              {
@@ -237,7 +241,7 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
       </div>
 
       <div className='hand other-hand'>
-        <Hand cards={phase.includes('peg') ? otherPegHand : p2mode ? p1hand : p2hand}
+        <Hand cards={phase.includes('peg') ? fillTo(4, otherPegHand) : p2mode ? p1hand : p2hand}
               hidden={!(phase.includes('scores') && ((p2mode && (phase.substr(0, 2) === 'p1')) ||
                                                      (!p2mode && (phase.substr(0, 2) === 'p2'))))}
               style={defHandStyle} />
