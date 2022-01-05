@@ -30,9 +30,15 @@
 }
 
 
-img.github, img.menu-user {
+img.github {
   margin: 5px 10px 5px 40px;
   height: calc(100% - 10px);
+  width: auto;
+}
+
+img.menu-user {
+  margin: 0px 10px 0px 40px;
+  height: calc(100% - 0px);
   width: auto;
 }
 
@@ -87,7 +93,7 @@ img.github, img.menu-user {
 .Menu {
   position: fixed;
   top: 7vh;
-  height: 30px;
+  height: 36px;
   flex-grow: 1;
   display: flex;
   justify-content: space-between;
