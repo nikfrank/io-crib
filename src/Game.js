@@ -48,7 +48,7 @@ const emptyGame = { p1: '', p2: '', p1hand: [], p2hand: [], pegs: [], phase: 'p1
 const PegArrow = ({ game, p2mode })=> {
   const who = useMemo(()=> whoPegs(game), [game]);
 
-  return <div className='peg-arrow'>{(who === 'p2') === p2mode ? '\\/' : '/\\'}</div>;
+  return <div className={'peg-arrow '+((who === 'p2') === p2mode ? 'me' : 'them')} />;
 };
 
 const PhaseButton = ({ phase, onClick, p2mode, handScores={}, selectedCount=0 })=> (
@@ -205,12 +205,9 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
                  style={defHandStyle}
                  onClick={card=> setSelectedCards(prv=> prv.includes(card) ? prv.filter(c=> c !== card) : [...prv, card])} />
         ) : (
-           <>
-             <Hand cards={fillTo(4, myPegHand)}
-                   hidden={false} style={defHandStyle}
-                   onClick={phaseClick} />
-             <PegArrow game={game} p2mode={p2mode} />
-           </>
+           <Hand cards={fillTo(4, myPegHand)}
+                 hidden={false} style={defHandStyle}
+                 onClick={phaseClick} />
         )}
       </div>
 
@@ -219,10 +216,14 @@ export function Game({ game = emptyGame, p2mode = false, network={} }) {
            <div className='peg-container hand'>
              <Hand cards={fillTo(6, currentPeg.stack)}
                    hidden={false} style={pegHandStyle} onClick={()=>0} />
-             <div className='peg-total'>{currentPeg.count}</div>
-             {
-               phase.includes('done') ? <PhaseButton phase='done-peg' onClick={donePeg} /> : null
-             }
+             <div className='peg-total'>
+               <span>{currentPeg.count}</span>
+               {
+                 phase.includes('done') ? <PhaseButton phase='done-peg' onClick={donePeg} /> : (
+                   <PegArrow game={game} p2mode={p2mode} />
+                 )
+               }
+             </div>
            </div>
         ) : <PhaseButton
               phase={finePhase}

@@ -371,6 +371,7 @@ function App() {
   
   return (
     <div className="App">
+      {!game ? <div className='splash'><img src='/logo512.png' alt='' /></div> : null }
       { (game?.phase || '').includes('won') && (game?.phase||'').includes('peg') ?
         <div className='new-game'>
           <span className={(game.phase.substr(0,2) === 'p2') === p2mode ? 'won' : 'lost'}>
@@ -408,7 +409,7 @@ function App() {
       <div className='game-container'>
         <Game game={game} p2mode={p2mode} network={boundNetwork} />
       </div>
-    </div>
+      </div>
   );
 }
 

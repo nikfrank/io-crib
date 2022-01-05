@@ -46,11 +46,58 @@
       height: 100%;
       position: relative;
 
+
+      .peg-arrow {
+        position: absolute;
+        right: 10px;
+        z-index: 12;
+
+        &::after {
+          position: absolute;
+          top: 0;
+          right: 0;
+          color: #c00;
+        }
+        
+        &.me {
+          bottom: -1px;
+
+          &::after {
+            content: "\\/";
+          }
+        }
+        &.them {
+          top: -20px;
+          
+          &::after {
+            content: "/\\";
+          }
+        }
+      }
+      
       .peg-total {
         position: absolute;
-        right: 18px;
-        top: 12vh;
+        right: 32px;
+        top: calc(50% - 20px);
         z-index: 12;
+        height: 32px;
+        width: 32px;
+        background: #f885;
+        border-radius: 50%;
+        border: 2px solid red;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        span {
+          font-size: 1.25rem;
+          color: #500;
+        }
+
+        .PhaseButton {
+          justify-content: flex-start;
+        }
       }
     }
   }
@@ -72,7 +119,7 @@
       user-select: none;
     }
 
-    & svg > g > * { transition: 200ms transform }
+    & svg > g > * { transition: 20ms transform }
     
     @for $i from 0 through 5 {
       &.selected-#{$i} {
@@ -111,8 +158,8 @@
 
 .PhaseButton {
   position: fixed;
-  top: 38vh;
-  height: 20px;
+  top: 54vh;
+  height: 50px;
   width: 86vw;
 
   display: flex;
@@ -121,20 +168,13 @@
   
   button {
     margin-top: 6px;
-    height: 42px;
+    height: 50px;
     border: 3px outset white;
     color: black;
-    font-size: 1.75rem;
+    font-size: 1.875rem;
 
     &[disabled] {
       background: #cccc;
     }
   }
-}
-
-.peg-arrow {
-  position: fixed;
-  right: 9vw;
-  top: 53vh;
-  z-index: 3000;
 }
