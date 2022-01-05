@@ -94,7 +94,7 @@ const PhaseButton = ({ phase, onClick, p2mode, handScores={}, selectedCount=0 })
        </button>
     ) : phase === 'p2-cribs-p2' ? (
        <button disabled={!p2mode || (selectedCount !== 2)} onClick={onClick}>
-         {!p2mode ? 'p2... put cards to crib' :'Put cards in my crib'}
+         {!p2mode ? 'p2... put cards in crib' :'Put cards in my crib'}
        </button>
     ) : phase === 'done-peg' ? (
        <button onClick={onClick}>
